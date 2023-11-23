@@ -78,5 +78,4 @@ rsem-calculate-expression --paired-end -no-bam-output --alignments \
 rsem-generate-data-matrix-modified FPKM ${*results} > gene.fpkm
 rsem-generate-data-matrix-modified count ${*results} > gene.count
 rsem-generate-data-matrix-modified TPM ${*results} > gene.tpm
-
 #--------------------------------------------------------------------------------
