@@ -3,11 +3,12 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-11-23 14:10:22
+ # @LastEditTime: 2023-11-23 14:14:44
 ### 
 
 #--------------------------------------------------------------------------------
-#### Before start, you need get reference, annotation files ready.
+### Before start
+#### you need get reference, annotation files ready.
 #### Also, you can download from illumina website
 #### https://support.illumina.com/sequencing/sequencing_software/igenome.html
 #### You can follow these instructions to build index files
