@@ -3,7 +3,7 @@
  * @Author: LiQun
  * @Email: liqun95@163.com
  * @Date: 2023-11-23 10:54:13
- * @LastEditTime: 2023-11-23 14:42:10
+ * @LastEditTime: 2023-11-23 14:45:15
 -->
 ### SARSCoV2
 RNA-seq analysis pipeline of Cas13d-SARScov2 genome-wide screen
@@ -20,7 +20,7 @@ RNA-seq analysis pipeline of Cas13d-SARScov2 genome-wide screen
 ### Contact
 > If you have any question, please sent us your log file.
 
-> qun.li@ki.se
+> claudia.kutter@scilifelab.se & qun.li@ki.se
 
 # License
 [MIT](./LICENSE)
