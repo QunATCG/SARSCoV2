@@ -3,8 +3,19 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-11-23 13:58:16
+ # @LastEditTime: 2023-11-23 14:10:22
 ### 
+
+#--------------------------------------------------------------------------------
+#### Before start, you need get reference, annotation files ready.
+#### Also, you can download from illumina website
+#### https://support.illumina.com/sequencing/sequencing_software/igenome.html
+#### You can follow these instructions to build index files
+#### https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+#### https://github.com/alexdobin/STAR
+#### https://deweylab.github.io/RSEM/
+
+#--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
 ### Default setting
@@ -16,11 +27,13 @@ GENOMEINDEX=
 RSEMINDEX=
 #### gtf path
 ANNOTATION=$3
-#### FASTQ1
+#### FASTQ1 path
 FQ1=
-#### FASTQ2
+#### FASTQ2 path
 FQ2=
-
+#### RSEM result path
+RSEMOUT=
+THREADS=16
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
@@ -36,15 +49,19 @@ trim_galore -q 30 -stringency 3 -length 20 --phred33 -fastqc \
 
 #--------------------------------------------------------------------------------
 ### 2. Mapping
-#### Before start, you need get reference, annotation files ready
-#### software: STAR & RSEM
+#### software: STAR 
 #### https://github.com/alexdobin/STAR
-#### https://deweylab.github.io/RSEM/
 
 STAR --outSAMtype BAM SortedByCoordinate --runThreadN $THREADS \
         --readFilesCommand zcat --genomeDir $GENOMEINDEX \
         --readFilesIn $FQ1 $FQ2 --quantMode TranscriptomeSAM GeneCounts \
         --outFileNamePrefix $STAROUT/${FQ1}_${FQ2}/${FQ1}_${FQ2}
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+### 3. Quantify gene expression
+#### Software: RSEM
+#### https://deweylab.github.io/RSEM/
 
 rsem-calculate-expression --paired-end -no-bam-output --alignments \
         -p $THREADS ${FQ1}_${FQ2}Aligned.toTranscriptome.out.bam \
