@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-11-23 14:16:29
+ # @LastEditTime: 2023-11-23 14:19:34
 ### 
 
 #--------------------------------------------------------------------------------
@@ -70,3 +70,13 @@ rsem-calculate-expression --paired-end -no-bam-output --alignments \
         ${RSEMINDEX} $RSEMOUT/${FQ1}_${FQ2}
 #--------------------------------------------------------------------------------
 
+#--------------------------------------------------------------------------------
+### 4. Merge fpkm, count and tpm
+#### Software: RSEM
+#### https://deweylab.github.io/RSEM/
+#### ${*results}: all results from step3. 
+rsem-generate-data-matrix-modified FPKM ${*results} > gene.fpkm
+rsem-generate-data-matrix-modified count ${*results} > gene.count
+rsem-generate-data-matrix-modified TPM ${*results} > gene.tpm
+
+#--------------------------------------------------------------------------------
