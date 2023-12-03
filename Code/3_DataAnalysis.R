@@ -1,5 +1,5 @@
 ###
- # @Descripttion: Differential gene expression analysis (DEG)
+ # @Descripttion: Data Analysis
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 14:21:57
@@ -7,7 +7,7 @@
 ### 
 
 # DEG analysis was performed using R package DESeq2
-# plot figures using R package pheatmap
+# ploting was performed using R package pheatmap
 
 # set working env
 rm(list = ls())
