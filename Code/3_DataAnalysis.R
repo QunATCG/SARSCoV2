@@ -29,6 +29,8 @@ library(pheatmap)
 # load tpm, matchedID and sampleinfo
 expTPM <- read.table("./Data/ExpRNAseq/Covid19.gene.tpm", header = T,
                     sep = "\t", stringsAsFactors = FALSE)
+expCount <- read.table("./Data/ExpRNAseq/Covid19.gene.count", header = T,
+                       sep = "\t", stringsAsFactors = FALSE)
 matchedID <- read.table("./Data/matchedID.txt", header = T, sep = "\t",
                         stringsAsFactors = FALSE)
 sampleInfo <- read.table("./Data/Sample_information.txt", header = T,
@@ -41,8 +43,17 @@ for (i in 1:nrow(matchedID)){
 }
 
 # rename the colnames of expTPM
-colNamesExp <- c("Ensembl",sampleInfo$InfoTag)
+colNamesExp <- c("Ensembl",paste(c(sampleInfo$InfoTag),"TPM", sep = "_"))
+colNamesCount <- c("Ensembl",paste(c(sampleInfo$InfoTag),"Count", sep = "_"))
 colnames(expTPM) <- colNamesExp
+colnames(expCount) <- colNamesCount
 
 # match Ensembl and Gene
-expData <- merge(expTPM, matchedID, by = "Ensembl", all.x = T)
+expDataTPM <- merge(expTPM, matchedID, by = "Ensembl", all.x = T)
+expDataTPMCount <- merge(expDataTPM, expCount, by = "Ensembl", all.x = T)
+expData <- expDataTPMCount
+
+# PCA Analysis
+
+
+# DEG for infect and uninfect cells
