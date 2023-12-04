@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-04 10:00:23
+ # @LastEditTime: 2023-12-04 10:31:58
 ### 
 
 #--------------------------------------------------------------------------------
@@ -83,6 +83,6 @@ rsem-generate-data-matrix-modified TPM ${*results} > gene.tpm
 #### Software: Subread(featureCounts)
 #### https://subread.sourceforge.net/
 #### *.out.bam: all mapped bam files from step2
-featureCounts -T 16 -a $ANNOTATION \
+featureCounts -T 16 -a $ANNOTATION --countReadPairs \
         -o Covid19.counts.txt -p -t exon -g gene_id ./*.out.bam
 #--------------------------------------------------------------------------------
