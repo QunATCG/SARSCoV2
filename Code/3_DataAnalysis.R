@@ -29,7 +29,9 @@ library(pheatmap)
 # load tpm, matchedID and sampleinfo
 expTPM <- read.table("./Data/ExpRNAseq/Covid19.gene.tpm", header = T,
                     sep = "\t", stringsAsFactors = FALSE)
-expCount <- read.table("./Data/ExpRNAseq/Covid19.gene.count", header = T,
+expFPKM <- read.table("./Data/ExpRNAseq/Covid19.gene.fpkm", header = T,
+                      sep = "\t", stringsAsFactors = FALSE)
+expExpextedCount <- read.table("./Data/ExpRNAseq/Covid19.gene.count", header = T,
                        sep = "\t", stringsAsFactors = FALSE)
 matchedID <- read.table("./Data/matchedID.txt", header = T, sep = "\t",
                         stringsAsFactors = FALSE)
@@ -43,15 +45,24 @@ for (i in 1:nrow(matchedID)){
 }
 
 # rename the colnames of expTPM
-colNamesExp <- c("Ensembl",paste(c(sampleInfo$InfoTag),"TPM", sep = "_"))
-colNamesCount <- c("Ensembl",paste(c(sampleInfo$InfoTag),"Count", sep = "_"))
-colnames(expTPM) <- colNamesExp
-colnames(expCount) <- colNamesCount
+colNamesTPM <- c("Ensembl",paste(c(sampleInfo$InfoTag),"TPM", sep = "_"))
+colNamesFPKM <- c("Ensembl",paste(c(sampleInfo$InfoTag),"FPKM", sep = "_"))
+colNamesExpectedCount <- c("Ensembl",paste(c(sampleInfo$InfoTag),"ExpectedCount", sep = "_"))
+colnames(expTPM) <- colNamesTPM
+colnames(expFPKM) <- colNamesFPKM
+colnames(expExpextedCount) <- colNamesExpectedCount
 
 # match Ensembl and Gene
 expDataTPM <- merge(expTPM, matchedID, by = "Ensembl", all.x = T)
-expDataTPMCount <- merge(expDataTPM, expCount, by = "Ensembl", all.x = T)
-expData <- expDataTPMCount
+expDataTPM_FPKM <- merge(expDataTPM, expFPKM, by = "Ensembl", all.x = T)
+expDataTPM_FPKM_ExpectedCount <- merge(expDataTPM_FPKM, expExpextedCount, by = "Ensembl", all.x = T)
+
+
+# function definition
+qunDEGAnalysis <- function(countData, condition){
+  
+}
+
 
 # PCA Analysis
 
