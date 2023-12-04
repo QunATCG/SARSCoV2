@@ -68,8 +68,8 @@ expDataTPM_FPKM_ExpectedCount_ReadCount <- merge(expDataTPM_FPKM_ExpectedCount, 
 expData <- expDataTPM_FPKM_ExpectedCount_ReadCount
 
 # function definition
-qunDEGAnalysis <- function(dat, condition_CT, num_CT, condition_Treat, num_Treat, fc, pthreshold){
-  coldata <- data.frame(condition = factor(c(rep(condition_CT, num_CT), rep(condition_Treat, num_Treat))), levels = c(rep(condition_CT, num_CT), rep(condition_Treat, num_Treat)))
+qunDEGAnalysisTwoCondition <- function(dat, condition_CT, num_CT, condition_Treat, num_Treat, fc, pthreshold){
+  coldata <- data.frame(condition = factor(c(rep(condition_CT, num_CT), rep(condition_Treat, num_Treat)), levels = c(condition_CT, condition_Treat)))
   rownames(coldata) <- colnames(dat)
   dds <- DESeqDataSetFromMatrix(countData = dat, colData = coldata, design= ~condition)
   dds1 <- DESeq(dds, parallel = FALSE)
@@ -80,26 +80,52 @@ qunDEGAnalysis <- function(dat, condition_CT, num_CT, condition_Treat, num_Treat
   res1[which(res1$log2FoldChange <= -log2(fc) & res1$padj < pthreshold),'sig'] <- 'down'
   res1[which(abs(res1$log2FoldChange) <= log2(fc) | res1$padj >= pthreshold),'sig'] <- 'none'
   res1_select <- subset(res1, sig %in% c('up', 'down'))
-  return(res1_select)
+  resultList <- list(DEG = res1_select, datNormal = dds1, coldata = coldata )
+  return(resultList)
 }
 
+qunDEGAnalysisThreeCondition <- function(dat, condition_CT, num_CT, condition_Treat1, num_Treat1, condition_Treat2, num_Treat2, fc, pthreshold){
+  coldata <- data.frame(condition = factor(c(rep(condition_CT, num_CT), rep(condition_Treat1, num_Treat1), rep(condition_Treat2, num_Treat2)), levels = c(condition_CT, condition_Treat1, condition_Treat2)))
+  rownames(coldata) <- colnames(dat)
+  dds <- DESeqDataSetFromMatrix(countData = dat, colData = coldata, design= ~condition)
+  dds1 <- DESeq(dds, parallel = FALSE)
+  resultList <- list(DEG =  dds1, coldata = coldata )
+  return(resultList)
+}
 # expression filter
 # exculde genes with fpkm <= 1 
 
+expDataOver1 <- expData[which(rowMeans(expData[,c("Mock_1_FPKM", "Mock_2_FPKM", "Mock_3_FPKM")]) >=1 | 
+                      rowMeans(expData[,c("T_1_FPKM", "T_2_FPKM", "T_3_FPKM")]) >=1 | 
+                      rowMeans(expData[,c("NT_1_FPKM", "NT_2_FPKM", "NT_3_FPKM")]) >=1),]
+
+# PCA
+expData_PCA <- expDataOver1[,30:38]
+rownames(expData_PCA) <- expDataOver1$Ensembl
+expData_correlation <- cor(log2(expData_PCA + 1))
+pheatmap(expData_correlation)
+
+# check expDataOver1 colnames
+colnames(expDataOver1)
+
+# Mock vs NT
 
 
-#
-expData_test <- round(expData[,21:26])
-rownames(expData_test) <- expData$Ensembl
-dat = expData_test
-condition_CT = "Mock"
-num_CT = 3
-condition_Treat = "NT"
-num_Treat = 3
-fc = 2
-pthreshold = 0.01
+kk <- qunDEGAnalysisTwoCondition(round(expData_PCA[,1:6]), "Mock", 3, "NT", 3, 2, 0.01)
+mm <- qunDEGAnalysisThreeCondition(round(expData_PCA), "Mock", 3, "NT", 3, "T", 3, 2, 0.01)
 
-qunDEGAnalysis(expData_test, "Mock", 3, "NT", 3, 2, 0.01)
+rld <- rlog(mm$DEG)
+plotPCA(rld)
+
+rld_mat <- assay(rld)
+rld_cor <- cor(rld_mat) 
+pheatmap(rld_cor)
+
+dds <- estimateSizeFactors(mm$DEG)
+# shifted log of normalized counts
+se <- SummarizedExperiment(log2(counts(dds, normalized=TRUE) + 1),
+                           colData=colData(dds))
+plotPCA( DESeqTransform(se))
 # PCA Analysis
 
 
