@@ -36,7 +36,11 @@ expExpextedCount <- read.table("./Data/ExpRNAseq/Covid19.gene.count", header = T
 matchedID <- read.table("./Data/matchedID.txt", header = T, sep = "\t",
                         stringsAsFactors = FALSE)
 sampleInfo <- read.table("./Data/Sample_information.txt", header = T,
-                         sep = "\t", stringsAsFactors = FALSE)
+                        sep = "\t", stringsAsFactors = FALSE)
+
+# round down expected Count was used to perform DEG analysis
+# https://pubmed.ncbi.nlm.nih.gov/35256454/
+
 # process NA items of matchedID
 for (i in 1:nrow(matchedID)){
   if (matchedID[i,]$Gene == ""){
