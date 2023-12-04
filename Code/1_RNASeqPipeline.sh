@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-11-23 14:20:47
+ # @LastEditTime: 2023-12-04 10:00:23
 ### 
 
 #--------------------------------------------------------------------------------
@@ -69,11 +69,20 @@ rsem-calculate-expression --paired-end -no-bam-output --alignments \
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
-### 4. Merge fpkm, count and tpm
+### 4. Merge fpkm, expected count and tpm
 #### Software: RSEM
 #### https://deweylab.github.io/RSEM/
 #### ${*results}: all results from step3. 
 rsem-generate-data-matrix-modified FPKM ${*results} > gene.fpkm
 rsem-generate-data-matrix-modified count ${*results} > gene.count
 rsem-generate-data-matrix-modified TPM ${*results} > gene.tpm
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+### 5. count reads
+#### Software: Subread(featureCounts)
+#### https://subread.sourceforge.net/
+#### *.out.bam: all mapped bam files from step2
+featureCounts -T 16 -a $ANNOTATION \
+        -o Covid19.counts.txt -p -t exon -g gene_id ./*.out.bam
 #--------------------------------------------------------------------------------
