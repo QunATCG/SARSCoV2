@@ -1,7 +1,150 @@
 ###
- # @Descripttion: Data Analysis
+ # @Descripttion: plotData
  # @Author: Qun Li
  # @Email: qun.li@ki.se/liqun95@163.com
  # @Date: 2023-12-07 14:21:57
 ### 
 
+# set working env
+rm(list = ls())
+# set your working path 
+setwd("/Users/liqun/Desktop/Projects/Covid19/Data/Code/SARSCoV2/")
+# check your working path
+dirNow <- getwd()
+
+### load libraries
+library(ggplot2)
+library(pheatmap)
+
+### function def
+{
+  keepOverExp <- function(dat, cutoff){
+    res <- dat[which(rowMeans(dat[,c("Mock_1_FPKM", "Mock_2_FPKM", "Mock_3_FPKM")]) >=cutoff | 
+                       rowMeans(dat[,c("T_1_FPKM", "T_2_FPKM", "T_3_FPKM")]) >=cutoff | 
+                       rowMeans(dat[,c("NT_1_FPKM", "NT_2_FPKM", "NT_3_FPKM")]) >=cutoff),]
+  }
+  
+  keepOverReadCount <- function(dat, cutoff, tagItem){
+    if(tagItem == "star_total"){
+      res <- dat[which(rowSums(dat[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("NT_1_ReadCount", "NT_2_ReadCount", "NT_3_ReadCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")] >= cutoff ) >= 3),]
+    }
+    if(tagItem == "star_covid19"){
+      res <- dat[which(rowSums(dat[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("NT_1_ExpectedCount", "NT_2_ExpectedCount", "NT_3_ExpectedCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")] >= cutoff ) >= 3),]
+    }
+    if(tagItem == "hisat2_total"){
+      res <- dat[which(rowSums(dat[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("NT_1_ReadCount", "NT_2_ReadCount", "NT_3_ReadCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")] >= cutoff ) >= 3),]
+    }
+    if(tagItem == "hisat2_covid19"){
+      res <- dat[which(rowSums(dat[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("NT_1_ReadCount", "NT_2_ReadCount", "NT_3_ReadCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")] >= cutoff ) >= 3),]
+    }
+    return(res)
+  }
+}
+
+### load data
+### calculate covid19 readcounts
+### hisat2
+{
+  countsData <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
+                                                                                                      "Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
+                                                                                                      "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")]
+  totalReadCounts <- colSums(countsData[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
+                                           "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")])
+  covidReadCounts <- colSums(countsData[c(57050:57061),c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
+                                                         "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")])
+  covidReadCountsPercent <- covidReadCounts/totalReadCounts
+  covidReadCountsPercentDataFrame1 <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = covidReadCountsPercent)
+}
+
+
+### star
+{
+  countsData_total <- read.table("./Data/ExpRNAseq/STAR/Star_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
+                                                                                                        "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+                                                                                                        "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
+  countsData_covid <- read.table("./Data/ExpRNAseq/STAR/Star_exp_Covid19.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
+                                                                                                          "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+                                                                                                          "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
+  countsData <- rbind(countsData_total, countsData_covid)
+  totalReadCounts <- colSums(countsData[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+                                           "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
+  covidReadCounts <- colSums(countsData[c(62755:62766),c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+                                                         "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
+  covidReadCountsPercent <- covidReadCounts/totalReadCounts
+  covidReadCountsPercentDataFrame2 <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = covidReadCountsPercent)
+}
+
+
+
+
+pbar_covidReadCountsPercent <- ggplot(covidReadCountsPercentDataFrame1,aes(sample,value))  +
+  stat_summary(mapping=aes(fill = sample),fun=mean,geom = "bar",fun.args = list(mult=1),width=0.7)+
+  stat_summary(fun.data=mean_sdl,fun.args = list(mult=1),geom="errorbar",width=0.2)+
+  labs(x = "",y = "Read Counts (%)")+
+  scale_y_continuous(expand = c(0,0),limits = c(0,1))+
+  theme_classic()+
+  theme(panel.background=element_rect(fill="white",colour="black",size=0.25),
+        axis.line=element_line(colour="black",size=0.25),
+        axis.title=element_text(size=13,color="black"),
+        axis.text = element_text(size=12,color="black"),
+        legend.position="none")
+mean(covidReadCountsPercentDataFrame1$value[4:6])
+mean(covidReadCountsPercentDataFrame1$value[7:9])
+pdf("./Results/Figure/1_covidReadCounts.pdf", width = 3.38, height = 4.31)
+pbar_covidReadCountsPercent
+dev.off()
+
+
+### Only read hisat2
+exp_NT_Mock <- keepOverExp(keepOverReadCount(read.csv("./Results/Table/DEG/Hisat2/DEG_NT_Mock_hisat2_result.csv", 
+                                                      header = T, sep = ";", stringsAsFactors = FALSE, dec = ","), 5, "hisat2_total"),1)
+exp_NT_Mock <- subset(exp_NT_Mock, sig != "none")
+go_NT_Mock_down <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_Mock_hisat2_GO_Down.csv", header = T, sep = ";")
+go_NT_Mock_up <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_Mock_hisat2_GO_Up.csv", header = T, sep = ";")
+
+exp_NT_T <- keepOverExp(keepOverReadCount(read.csv("./Results/Table/DEG/Hisat2/DEG_NT_T_hisat2_result.csv", 
+                                                   header = T, sep = ";", stringsAsFactors = FALSE, dec = ","), 5, "hisat2_total"),1)
+exp_NT_T <- subset(exp_NT_T, sig != "none")
+go_NT_T_down <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_T_hisat2_GO_Down.csv", header = T, sep = ";")
+go_NT_T_up <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_T_hisat2_GO_Up.csv", header = T, sep = ";")
+
+### merge expdata
+exp_Data <- rbind(exp_NT_Mock[,1:35], exp_NT_T[,1:35])
+exp_Data <- exp_Data[!duplicated(exp_Data$Ensembl,),]
+exp_Data <- exp_Data[!duplicated(exp_Data$Gene,),]
+
+### extract data for plot
+exp_Data_plot_total <- exp_Data[,c("Ensembl","Mock_1_TPM","Mock_2_TPM","Mock_3_TPM","NT_1_TPM","NT_2_TPM","NT_3_TPM","T_1_TPM","T_2_TPM","T_3_TPM")]
+## NT VS Mock Down
+exp_Data_plot_total_Down <- exp_Data_plot_total[exp_Data_plot_total$Ensembl %in% exp_NT_Mock[exp_NT_Mock$sig == "down",]$Ensembl,]
+## NT VS Mock Up
+exp_Data_plot_total_Up <- exp_Data_plot_total[exp_Data_plot_total$Ensembl %in% exp_NT_Mock[exp_NT_Mock$sig == "up",]$Ensembl,]
+## T VS NT Down
+exp_NT_T_UpGene <- exp_NT_T[exp_NT_T$sig == "up",]$Ensembl
+exp_NT_T_DownGene <- exp_NT_T[exp_NT_T$sig == "down",]$Ensembl
+## select interested genes
+geneList1 <- exp_NT_T_DownGene[exp_NT_T_DownGene %in% exp_Data_plot_total_Up$Ensembl]
+geneList2 <- exp_NT_T_UpGene[exp_NT_T_UpGene %in% exp_Data_plot_total_Up$Ensembl]
+geneList3 <- exp_NT_T_DownGene[exp_NT_T_DownGene %in% exp_Data_plot_total_Down$Ensembl]
+geneList4 <- exp_NT_T_UpGene[exp_NT_T_UpGene %in% exp_Data_plot_total_Down$Ensembl]
+
+geneInterested <- data.frame(Ensembl = c(geneList1, geneList2, geneList3, geneList4), order = 1:39)
+geneInterested_exp <- merge(geneInterested, exp_NT_T, by = "Ensembl", all.x = T)[,c("order","Ensembl","Mock_1_TPM","Mock_2_TPM","Mock_3_TPM","NT_1_TPM","NT_2_TPM","NT_3_TPM","T_1_TPM","T_2_TPM","T_3_TPM")]
+geneInterested_exp <- geneInterested_exp[order(geneInterested_exp$order),]
+
+
+rownames(exp_Data_plot) <- exp_Data$Gene
+
+### pheatmap
+pheatmap(log10(exp_Data_plot_total_Up[,2:9] + 0.1), show_rownames = FALSE, cluster_cols = FALSE, scale = "row")
+pheatmap(log10(exp_NT_T[,c("Mock_1_TPM","Mock_2_TPM","Mock_3_TPM","NT_1_TPM","NT_2_TPM","NT_3_TPM","T_1_TPM","T_2_TPM","T_3_TPM")] + 0.1),
+         show_rownames = FALSE, cluster_cols = T, scale = "row")
+pheatmap(log10(geneInterested_exp[,3:11]), cluster_rows = F, cluster_cols = F, scale = "row")
