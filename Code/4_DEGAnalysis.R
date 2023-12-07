@@ -3,7 +3,6 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se/liqun95@163.com
  # @Date: 2023-11-23 14:21:57
- # @LastEditTime: 2023-11-23 14:21:58
 ### 
 
 # DEG analysis was performed using R package DESeq2
