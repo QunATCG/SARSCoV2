@@ -24,7 +24,7 @@ library(org.Hs.eg.db)
 
 # load data
 star_total <- read.table("./Data/ExpRNAseq/STAR/Star_exp_total.txt", header = T,
-                         sep = "\t", stringsAsFactors = FALSE)
+                         sep = "\t", stringsAsFactors = FALSE)[,1:29]
 star_covid <- read.table("./Data/ExpRNAseq/STAR/Star_exp_Covid19.txt", header = T,
                          sep = "\t", stringsAsFactors = FALSE)
 
@@ -33,10 +33,14 @@ hisat2_total <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_total.txt", heade
 hisat2_covid <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_Covid19.txt", header = T,
                            sep = "\t", stringsAsFactors = FALSE)
 
-Covid19_geneName <- c("ORF1ab","ORF1ab","S", "ORF3a", "E", "M", "ORF6", "ORF7a","ORF7b",
+Covid19_geneName <- c("ORF1ab","ORF1a","S", "ORF3a", "E", "M", "ORF6", "ORF7a","ORF7b",
                       "ORF8", "N", "ORF10")
 star_covid$Gene <- Covid19_geneName
 hisat2_covid$Gene <- Covid19_geneName
+
+star_Data <- rbind(star_total,star_covid)
+hisat2_Data <- rbind(hisat2_total,hisat2_covid)
+
 
 # function definition
 {
@@ -69,9 +73,9 @@ hisat2_covid$Gene <- Covid19_geneName
   
   keepOverReadCount <- function(dat, cutoff, tagItem){
     if(tagItem == "star_total"){
-      res <- dat[which(rowSums(dat[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("NT_1_ReadCount", "NT_2_ReadCount", "NT_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")] >= cutoff ) >= 3),]
+      res <- dat[which(rowSums(dat[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("NT_1_ExpectedCount", "NT_2_ExpectedCount", "NT_3_ExpectedCount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")] >= cutoff ) >= 3),]
     }
     if(tagItem == "star_covid19"){
       res <- dat[which(rowSums(dat[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount")] >= cutoff ) >= 3 |
@@ -149,11 +153,12 @@ hisat2_covid$Gene <- Covid19_geneName
 # hisat2_total_over <- keepOverReadCount(keepOverExp(hisat2_total,1),5,"hisat2_total")
 # hisat2_covid_over <- keepOverReadCount(keepOverExp(hisat2_covid,1),5,"hisat2_covid19")
 
-star_total_over <- star_total
-hisat2_total_over <- hisat2_total
+star_total_over <- star_Data
+hisat2_total_over <- hisat2_Data
+#hisat2_total_over <- hisat2_Data
 
 # PCA
-star_total_over_PCA <- star_total_over[,30:38]
+star_total_over_PCA <- round(star_total_over[,21:29])
 rownames(star_total_over_PCA) <- star_total_over$Ensembl
 # star_total_over_PCA_DEseq2 <- qunDEGAnalysisThreeCondition(round(star_total_over_PCA), "Mock", 3, "NT", 3, "T", 3, 2, 0.01)
 #plotDispEsts(star_total_over_PCA_DEseq2$DEG, main="Dispersion plot")
@@ -312,20 +317,3 @@ write.csv2(DEG_NT_T_star_GO_Up, "./Results/Table/GO/Star/DEG_NT_T_star_GO_Up.csv
 write.csv2(DEG_NT_T_star_GO_Down, "./Results/Table/GO/Star/DEG_NT_T_star_GO_Doan.csv", row.names = FALSE,quote = FALSE)
 write.csv2(DEG_T_Mock_star_GO_Up, "./Results/Table/GO/Star/DEG_T_Mock_star_GO_Up.csv", row.names = FALSE,quote = FALSE)
 write.csv2(DEG_T_Mock_star_GO_Down, "./Results/Table/GO/Star/DEG_T_Mock_star_GO_Down.csv", row.names = FALSE,quote = FALSE)
-
-
-# test
-#dataForGO <-keepOverReadCount(DEG_NT_Mock_hisat2_result, 5, "hisat2_total")
-#GeneForGO <- dataForGO[dataForGO$sig == "up",]$Ensembl
-#ego_ALL <- enrichGO(gene = GeneForGO, 
-#                    universe = dataForGO$Ensembl,
-#                    OrgDb = org.Hs.eg.db,
-#                    keyType = 'ENSEMBL',
-#                    ont = "ALL",
-#                    pAdjustMethod = "BH",
-#                   pvalueCutoff = 0.05,
-#                   qvalueCutoff = 0.05,
-#                    readable = TRUE)
-#summary(ego_ALL)
-
-

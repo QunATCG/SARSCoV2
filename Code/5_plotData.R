@@ -14,6 +14,7 @@ dirNow <- getwd()
 
 ### load libraries
 library(ggplot2)
+library(ggpubr)
 library(pheatmap)
 
 ### function def
@@ -53,9 +54,16 @@ library(pheatmap)
 ### calculate covid19 readcounts
 ### hisat2
 {
-  countsData <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
-                                                                                                      "Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
-                                                                                                      "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")]
+  countsData_total <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
+                      "Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
+                      "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")]
+  countsData_covid <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_Covid19.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
+                       "Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
+                       "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")]
+  Covid19_geneName <- c("ORF1ab","ORF1a","S", "ORF3a", "E", "M", "ORF6", "ORF7a","ORF7b",
+                        "ORF8", "N", "ORF10")
+  countsData_covid$Gene <- Covid19_geneName
+  countsData <- rbind(countsData_total, countsData_covid)
   totalReadCounts <- colSums(countsData[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
                                            "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")])
   covidReadCounts <- colSums(countsData[c(57050:57061),c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
@@ -66,39 +74,44 @@ library(pheatmap)
 
 
 ### star
-{
-  countsData_total <- read.table("./Data/ExpRNAseq/STAR/Star_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
-                                                                                                        "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-                                                                                                        "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
-  countsData_covid <- read.table("./Data/ExpRNAseq/STAR/Star_exp_Covid19.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
-                                                                                                          "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-                                                                                                          "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
-  countsData <- rbind(countsData_total, countsData_covid)
-  totalReadCounts <- colSums(countsData[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-                                           "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
-  covidReadCounts <- colSums(countsData[c(62755:62766),c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-                                                         "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
-  covidReadCountsPercent <- covidReadCounts/totalReadCounts
-  covidReadCountsPercentDataFrame2 <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = covidReadCountsPercent)
-}
+#{
+#  countsData_total <- read.table("./Data/ExpRNAseq/STAR/Star_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
+#                                                                                                        "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+#                                                                                                        "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
+#  countsData_covid <- read.table("./Data/ExpRNAseq/STAR/Star_exp_Covid19.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
+#                                                                                                          "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+#                                                                                                          "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
+#  countsData <- rbind(countsData_total, countsData_covid)
+#  totalReadCounts <- colSums(countsData[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+#                                           "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
+#  covidReadCounts <- colSums(countsData[c(62755:62766),c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
+#                                                         "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
+#  covidReadCountsPercent <- covidReadCounts/totalReadCounts
+#  covidReadCountsPercentDataFrame2 <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = covidReadCountsPercent)
+#}
 
+NTMean <- mean(covidReadCountsPercentDataFrame1$value[4:6])
+TMean <- mean(covidReadCountsPercentDataFrame1$value[7:9])
 
-
+pvalueNT_T <- t.test(covidReadCountsPercentDataFrame1$value[4:6], covidReadCountsPercentDataFrame1$value[7:9])$p.value
+myComparision <- list(c("NT","T"))
 
 pbar_covidReadCountsPercent <- ggplot(covidReadCountsPercentDataFrame1,aes(sample,value))  +
   stat_summary(mapping=aes(fill = sample),fun=mean,geom = "bar",fun.args = list(mult=1),width=0.7)+
   stat_summary(fun.data=mean_sdl,fun.args = list(mult=1),geom="errorbar",width=0.2)+
-  labs(x = "",y = "Read Counts (%)")+
-  scale_y_continuous(expand = c(0,0),limits = c(0,1))+
-  theme_classic()+
-  theme(panel.background=element_rect(fill="white",colour="black",size=0.25),
-        axis.line=element_line(colour="black",size=0.25),
-        axis.title=element_text(size=13,color="black"),
-        axis.text = element_text(size=12,color="black"),
-        legend.position="none")
-mean(covidReadCountsPercentDataFrame1$value[4:6])
-mean(covidReadCountsPercentDataFrame1$value[7:9])
-pdf("./Results/Figure/1_covidReadCounts.pdf", width = 3.38, height = 4.31)
+  stat_compare_means(comparisons = myComparision, method = "t.test", label = "p.forma") +
+  annotate("text", x=2, y= 0.89, label= round(NTMean,2)) + 
+  annotate("text", x=3, y= 0.8, label= round(TMean,2)) +
+  labs(x = "",y = "Covid19 Read Counts (%)")+
+  #scale_y_continuous(expand = c(0,0),limits = c(0,2))+
+  theme_classic() #+
+  #theme(panel.background=element_rect(fill="white",colour="black",size=0.25),
+  #      axis.line=element_line(colour="black",size=0.25),
+  #      axis.title=element_text(size=13,color="black"),
+  #      axis.text = element_text(size=12,color="black"),
+  #      legend.position="none")
+
+pdf("./Results/Figure/1_covidReadCounts.pdf", width = 4.0, height = 4.36)
 pbar_covidReadCountsPercent
 dev.off()
 
@@ -115,6 +128,7 @@ exp_NT_T <- keepOverExp(keepOverReadCount(read.csv("./Results/Table/DEG/Hisat2/D
 exp_NT_T <- subset(exp_NT_T, sig != "none")
 go_NT_T_down <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_T_hisat2_GO_Down.csv", header = T, sep = ";")
 go_NT_T_up <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_T_hisat2_GO_Up.csv", header = T, sep = ";")
+
 
 ### merge expdata
 exp_Data <- rbind(exp_NT_Mock[,1:35], exp_NT_T[,1:35])
