@@ -44,7 +44,7 @@ hisat2_Data <- rbind(hisat2_total,hisat2_covid)
 
 # function definition
 {
-  qunDEGAnalysisTwoCondition <- function(dat, condition_CT, num_CT, condition_Treat, num_Treat, fc, pthreshold){
+  qunDEGAnalysisTwoCondition <- function(dat, condition_CT, num_CT, condition_Treat, num_Treat){
     coldata <- data.frame(condition = factor(c(rep(condition_CT, num_CT), rep(condition_Treat, num_Treat)), levels = c(condition_CT, condition_Treat)))
     rownames(coldata) <- colnames(dat)
     dds <- DESeqDataSetFromMatrix(countData = dat, colData = coldata, design= ~condition)
@@ -56,7 +56,7 @@ hisat2_Data <- rbind(hisat2_total,hisat2_covid)
     return(resultList)
   }
   
-  qunDEGAnalysisThreeCondition <- function(dat, condition_CT, num_CT, condition_Treat1, num_Treat1, condition_Treat2, num_Treat2, fc, pthreshold){
+  qunDEGAnalysisThreeCondition <- function(dat, condition_CT, num_CT, condition_Treat1, num_Treat1, condition_Treat2, num_Treat2){
     coldata <- data.frame(condition = factor(c(rep(condition_CT, num_CT), rep(condition_Treat1, num_Treat1), rep(condition_Treat2, num_Treat2)), levels = c(condition_CT, condition_Treat1, condition_Treat2)))
     rownames(coldata) <- colnames(dat)
     dds <- DESeqDataSetFromMatrix(countData = dat, colData = coldata, design= ~condition)
@@ -165,29 +165,33 @@ rownames(star_total_over_PCA) <- star_total_over$Ensembl
 # rld_star_total_over <- rlog(star_total_over_PCA_DEseq2$DEG)
 # star_total_over_PCA_dataFrame <- plotPCA(rld_star_total_over, returnData = T)
 
-hisat2_total_over_PCA <- hisat2_total_over[,21:29]
-rownames(hisat2_total_over_PCA) <- hisat2_total_over$Ensembl
-#hisat2_total_over_PCA_DEseq2 <- qunDEGAnalysisThreeCondition(round(hisat2_total_over_PCA), "Mock", 3, "NT", 3, "T", 3, 2, 0.01)
+hisat2_total_PCA <- hisat2_total[,21:29]
+rownames(hisat2_total_PCA) <- hisat2_total$Ensembl
+hisat2_total_PCA_DEseq2 <- qunDEGAnalysisThreeCondition(round(hisat2_total_PCA), "Mock", 3, "NT", 3, "T", 3)
 #plotDispEsts(hisat2_total_over_PCA_DEseq2$DEG, main="Dispersion plot")
-#rld_hisat2_total_over <- rlog(hisat2_total_over_PCA_DEseq2$DEG)
-#hisat2_total_over_PCA_dataFrame <- plotPCA(rld_hisat2_total_over, returnData = T)
+rld_hisat2_total <- rlog(hisat2_total_PCA_DEseq2$DEG)
+hisat2_total_PCA_dataFrame <- plotPCA(rld_hisat2_total, returnData = T)
 
-#pdf("./Results/0_PCA.pdf", width = 6.29, height = 2.26)
-#ggplot(data = hisat2_total_over_PCA_dataFrame, mapping = aes(x = PC1, y = PC2, colour = group)) + geom_point(size = 1) +
-#  scale_color_manual(values = c( Mock = "red", NT = "blue", T = "green" )) +
-#  xlab("PC1: 90% variance") +
-#  ylab("PC2: 4% variance") +
-#  theme_bw() +
-#  theme(panel.grid.major = element_blank(),
-#        panel.grid.minor = element_blank())
-#dev.off()
+pdf("./Results/Figure/0_PCA.pdf", width = 6, height = 3)
+ggplot(data = hisat2_total_PCA_dataFrame, mapping = aes(x = PC1, y = PC2, colour = group)) + geom_point(size = 1) +
+  scale_color_manual(values = c( Mock = "red", NT = "blue", T = "green" )) +
+  xlab("PC1: 90% variance") +
+  ylab("PC2: 4% variance") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+dev.off()
 
-#rld_hisat2_total_over_mat <- assay(rld_hisat2_total_over)
-#rld_hisat2_total_over_cor <- cor(rld_hisat2_total_over_mat)
+rld_hisat2_total_over_mat <- assay(rld_hisat2_total_over)
+rld_hisat2_total_over_cor <- cor(rld_hisat2_total_over_mat)
 
-#pdf("./Results/0_Pheatmap.pdf", width = 6.29, height = 5.68)
-#pheatmap(rld_hisat2_total_over_cor)
-#dev.off()
+pdf("./Results/Figure/0_Pheatmap_NormailizedCount.pdf", width = 6.29, height = 5.68)
+pheatmap(rld_hisat2_total_over_cor)
+dev.off()
+
+#corExp <- cor(hisat2_total[,c("Mock_1_FPKM", "Mock_2_FPKM", "Mock_3_FPKM" ,"NT_1_FPKM", "NT_2_FPKM", "NT_3_FPKM",
+#                              "T_1_FPKM", "T_2_FPKM", "T_3_FPKM")])
+#pheatmap(corExp)
 
 #vst_star_total_over1 <- vst(star_total_over1_PCA_DEseq2$DEG)
 #plotPCA(vst_star_total_over1)
@@ -212,13 +216,13 @@ rownames(hisat2_total_over_PCA) <- hisat2_total_over$Ensembl
 # generate results table for NT_vs_Mock
 # head(star_total_over_PCA)
 DEG_NT_Mock_star <- qunDEGAnalysisTwoCondition(dat = star_total_over_PCA[,1:6],condition_CT = "Mock", num_CT = 3,
-                                              condition_Treat = "NT", num_Treat = 3, fc = 2, pthreshold = 0.01)
+                                              condition_Treat = "NT", num_Treat = 3)
 
 DEG_NT_Mock_star_result <- markResult(dat = mergeResult(dat = DEG_NT_Mock_star$DEG, nameTag = "", expData = star_total_over, 
                                         fc = 2, pthreshold = 0.01, tagItem = "two"), fc = 1.5, pthreshold = 0.05,tagItem = "treatVScontrol")
 
 DEG_NT_Mock_hisat2 <- qunDEGAnalysisTwoCondition(dat = hisat2_total_over_PCA[,1:6],condition_CT = "Mock", num_CT = 3,
-                                               condition_Treat = "NT", num_Treat = 3, fc = 2, pthreshold = 0.01)
+                                               condition_Treat = "NT", num_Treat = 3)
 
 DEG_NT_Mock_hisat2_result <- markResult(dat = mergeResult(dat = DEG_NT_Mock_hisat2$DEG, nameTag = "", expData = hisat2_total_over, 
                                         fc = 2, pthreshold = 0.01, tagItem = "two"), fc = 1.5, pthreshold = 0.05,tagItem = "treatVScontrol")
@@ -227,14 +231,14 @@ DEG_NT_Mock_hisat2_result <- markResult(dat = mergeResult(dat = DEG_NT_Mock_hisa
 
 # generate results table for NT_vs_N
 DEG_NT_T_star <- qunDEGAnalysisTwoCondition(dat = star_total_over_PCA[,4:9],condition_CT = "NT", num_CT = 3,
-                                               condition_Treat = "T", num_Treat = 3, fc = 2, pthreshold = 0.01)
+                                               condition_Treat = "T", num_Treat = 3)
 
 DEG_NT_T_star_result <- markResult(dat = mergeResult(dat = DEG_NT_T_star$DEG, nameTag = "", expData = star_total_over, 
                                         fc = 2, pthreshold = 0.01, tagItem = "two"), fc = 1.5, pthreshold = 0.05,tagItem = "treatVScontrol")
 
 
 DEG_NT_T_hisat2 <- qunDEGAnalysisTwoCondition(dat = hisat2_total_over_PCA[,4:9],condition_CT = "NT", num_CT = 3,
-                                            condition_Treat = "T", num_Treat = 3, fc = 2, pthreshold = 0.01)
+                                            condition_Treat = "T", num_Treat = 3)
 
 DEG_NT_T_hisat2_result <- markResult(dat = mergeResult(dat = DEG_NT_T_hisat2$DEG, nameTag = "", expData = hisat2_total_over, 
                                      fc = 2, pthreshold = 0.01, tagItem = "two"), fc = 1.5, pthreshold = 0.05,tagItem = "treatVScontrol")
@@ -242,17 +246,16 @@ DEG_NT_T_hisat2_result <- markResult(dat = mergeResult(dat = DEG_NT_T_hisat2$DEG
 
 # generate results table for T_vs_Mock
 DEG_T_Mock_star <- qunDEGAnalysisTwoCondition(dat = star_total_over_PCA[,c(1,2,3,7,8,9)], condition_CT = "Mock", num_CT = 3,
-                                               condition_Treat = "T", num_Treat = 3, fc = 2, pthreshold = 0.01)
+                                               condition_Treat = "T", num_Treat = 3)
 
 DEG_T_Mock_star_result <- markResult(dat = mergeResult(dat = DEG_T_Mock_star$DEG, nameTag = "", expData = star_total_over, 
                                         fc = 2, pthreshold = 0.01, tagItem = "two"), fc = 1.5, pthreshold = 0.05,tagItem = "treatVScontrol")
 
 DEG_T_Mock_hisat2 <- qunDEGAnalysisTwoCondition(dat = hisat2_total_over_PCA[,c(1,2,3,7,8,9)],condition_CT = "Mock", num_CT = 3,
-                                                 condition_Treat = "T", num_Treat = 3, fc = 2, pthreshold = 0.01)
+                                                 condition_Treat = "T", num_Treat = 3)
 
 DEG_T_Mock_hisat2_result <- markResult(dat = mergeResult(dat = DEG_T_Mock_hisat2$DEG, nameTag = "", expData = hisat2_total_over, 
                                           fc = 2, pthreshold = 0.01, tagItem = "two"), fc = 1.5, pthreshold = 0.05,tagItem = "treatVScontrol")
-
 
 
 # save DEG result
