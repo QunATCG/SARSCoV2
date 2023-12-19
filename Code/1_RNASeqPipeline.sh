@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-19 13:30:36
+ # @LastEditTime: 2023-12-19 13:31:51
 ### 
 
 #--------------------------------------------------------------------------------
@@ -28,13 +28,11 @@ GENOMEINDEX=
 #### RSEM index path
 RSEMINDEX=
 #### gtf path
-ANNOTATION=$3
+GTF=
 #### FASTQ1 path
 FQ1=
 #### FASTQ2 path
 FQ2=
-#### RSEM result path
-RSEMOUT=
 #### Threads number
 THREADS=
 #--------------------------------------------------------------------------------
