@@ -18,7 +18,9 @@ RNA-seq analysis pipeline of Cas13d-SARScov2 genome-wide screen
 > XX
 
 ### Contact
-> XX
+> Data are available on reasonable request. The main data relevant to the study are included in the article or uploaded as supplementary information.
+
+> claudia.kutter@scilifelab.se & qun.li@ki.se
 
 # License
 [MIT](./LICENSE)
