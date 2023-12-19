@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-19 13:29:32
+ # @LastEditTime: 2023-12-19 13:30:36
 ### 
 
 #--------------------------------------------------------------------------------
@@ -12,8 +12,11 @@
 #### Also, you can download these files from illumina website
 #### https://support.illumina.com/sequencing/sequencing_software/igenome.html
 #### You can follow these instructions to build index files
+#### https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
 #### https://daehwankimlab.github.io/hisat2/manual/
-#### https://deweylab.github.io/RSEM/
+#### https://subread.sourceforge.net/featureCounts.html
+#### https://htseq.readthedocs.io/en/release_0.11.1/count.html
+#### https://ccb.jhu.edu/software/stringtie/
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
