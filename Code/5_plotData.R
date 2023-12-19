@@ -232,8 +232,12 @@ T_Uniq_down_genes <- setdiff(T_NT_down_genes, NT_Mock_down_genes)
 T_Uniq_genes <- c(T_Uniq_up_genes, T_Uniq_down_genes)
 T_Uniq_genes_exp <- exp_Data[exp_Data$Ensembl %in% T_Uniq_genes,]
 
+T_Uniq_genes_exp_Plot <- T_Uniq_genes_exp[,8:16]
+rownames(T_Uniq_genes_exp_Plot) <- T_Uniq_genes_exp$Gene
 
-pheatmap(T_Uniq_genes_exp[,8:16], scale = "row", show_rownames = F, cluster_cols = F, cutree_rows = 2)
+pdf("./Results/Figure/4_DEG_Uniq_T.pdf", width = 5.69, height = 11.9)
+pheatmap(T_Uniq_genes_exp_Plot, scale = "row", show_rownames = T, cluster_cols = F, cutree_rows = 2)
+dev.off()
 
 kk_total <- qunGO(T_Uniq_genes_exp$Ensembl)
 kk_up <- qunGO(T_Uniq_up_genes)

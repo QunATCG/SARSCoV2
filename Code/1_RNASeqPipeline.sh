@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-04 10:59:04
+ # @LastEditTime: 2023-12-19 13:29:32
 ### 
 
 #--------------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 #### Also, you can download these files from illumina website
 #### https://support.illumina.com/sequencing/sequencing_software/igenome.html
 #### You can follow these instructions to build index files
-#### https://github.com/alexdobin/STAR
+#### https://daehwankimlab.github.io/hisat2/manual/
 #### https://deweylab.github.io/RSEM/
 #--------------------------------------------------------------------------------
 
@@ -49,31 +49,24 @@ trim_galore -q 30 -stringency 3 -length 20 --phred33 -fastqc \
 
 #--------------------------------------------------------------------------------
 ### 2. Mapping
-#### software: STAR 
-#### https://github.com/alexdobin/STAR
+#### software: Hisat2 
+#### https://daehwankimlab.github.io/hisat2/manual/
 
-STAR --outSAMtype BAM SortedByCoordinate --runThreadN $THREADS \
-        --readFilesCommand zcat --genomeDir $GENOMEINDEX \
-        --readFilesIn $FQ1 $FQ2 --quantMode TranscriptomeSAM GeneCounts \
-        --outFileNamePrefix $STAROUT/${FQ1}_${FQ2}/${FQ1}_${FQ2}
+hisat2 -p $THREADS -x $GENOMEINDEX -1 $FQ1 -2 $FQ2 \
+    --summary-file summary.txt -S FQ.sam
+
+samtools view -@ $THREADS -bS FQ.sam > FQ.bam;
+samtools sort -@ $THREADS FQ.bam -o FQ.sorted.bam;
+samtools index -@ $THREADS FQ.sorted.bam
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
 ### 3. Quantify gene expression
-#### Software: RSEM
-#### https://deweylab.github.io/RSEM/
-
-rsem-calculate-expression --paired-end -no-bam-output --alignments \
-        -p $THREADS ${FQ1}_${FQ2}Aligned.toTranscriptome.out.bam \
-        ${RSEMINDEX} $RSEMOUT/${FQ1}_${FQ2}
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
-### 4. Merge fpkm, expected count and tpm
-#### Software: RSEM
-#### https://deweylab.github.io/RSEM/
-#### ${*results}: all results from step3. 
-rsem-generate-data-matrix-modified FPKM ${*results} > gene.fpkm
-rsem-generate-data-matrix-modified count ${*results} > gene.count
-rsem-generate-data-matrix-modified TPM ${*results} > gene.tpm
+#### Software: Featurecounts, HTseq and stringtie
+#### https://subread.sourceforge.net/featureCounts.html
+#### https://htseq.readthedocs.io/en/release_0.11.1/count.html
+#### https://ccb.jhu.edu/software/stringtie/
+featureCounts -T $THREADS -a $GTF -o counts.txt --countReadPairs -p -t exon -g gene_id *.sorted.bam
+htseq-count -f bam -s no -t exon -i gene_id --nonunique=none *.sorted.bam $GTF > htseq.count
+stringtie -e -B -p $THREADS -G $GTF -A FQ_gene_abund.tab -o FQ.gtf FQ.sorted.bam
 #--------------------------------------------------------------------------------
