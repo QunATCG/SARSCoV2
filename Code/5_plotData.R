@@ -5,22 +5,29 @@
  # @Date: 2023-12-07 14:21:57
 ### 
 
-# set working env
-rm(list = ls())
-# set your working path 
-setwd("/Users/liqun/Desktop/Projects/Covid19/Data/Code/SARSCoV2/")
-# check your working path
-dirNow <- getwd()
+# env setting
+{
+  # set working env
+  rm(list = ls())
+  # set your working path 
+  setwd("/Users/liqun/Desktop/Projects/Covid19/Data/Code/SARSCoV2/")
+  # check your working path
+  dirNow <- getwd()
+}
+
 
 ### load libraries
-library(ggplot2)
-library(gplots)
-library(ggsci)
-library(ggpubr)
-library(pheatmap)
-library(VennDiagram)
-library(clusterProfiler)
-library(org.Hs.eg.db)
+{
+  library(ggplot2)
+  library(gplots)
+  library(ggsci)
+  library(ggpubr)
+  library(pheatmap)
+  library(VennDiagram)
+  library(clusterProfiler)
+  library(org.Hs.eg.db)
+}
+
 
 
 ### function def
