@@ -3,11 +3,11 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-21 19:36:25
+ # @LastEditTime: 2023-12-21 19:37:40
 ### 
 
 #--------------------------------------------------------------------------------
-### Before start
+### Before you start
 #### you need get reference, annotation files ready.
 #### Also, you can download these files from illumina website
 #### https://support.illumina.com/sequencing/sequencing_software/igenome.html
@@ -21,7 +21,7 @@
 #--------------------------------------------------------------------------------
 
 
-### our analysis pipeline 
+### Analysis pipeline 
 #--------------------------------------------------------------------------------
 ### Default setting
 #### samples dir path
