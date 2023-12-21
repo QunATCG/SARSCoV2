@@ -45,6 +45,7 @@
   # calculate percentage of PCs
   data_PCA_var <- data_PCA_prcomp$sdev^2
   data_PCA_per <- round(data_PCA_var/sum(data_PCA_var)*100,1)
+  write.table(data_PCA_per, "./Data/ExpRNAseq/exp_Data_PCA_percentage.txt", quote = F, sep = "\t", row.names = T)
   # PCs 
   data_PCA_output <- data.frame(data_PCA_prcomp$x)
   write.table(data_PCA_output, "./Data/ExpRNAseq/exp_Data_PCA.txt", quote = F, sep = "\t", row.names = T)
@@ -110,15 +111,3 @@
   write.table(GO_NT_T_Up,      "./Data/ExpRNAseq/GO_Data_NT_T_Up.txt", quote = F, sep = "\t", row.names = F)
   write.table(GO_NT_T_Down,    "./Data/ExpRNAseq/GO_Data_NT_T_Down.txt", quote = F, sep = "\t", row.names = F)
 }
-
-
-
-pdf("./Results/Figure/0_PCA.pdf", width = 6, height = 3)
-ggplot(data = hisat2_total_PCA_dataFrame, mapping = aes(x = PC1, y = PC2, colour = group)) + geom_point(size = 1) +
-  scale_color_manual(values = c( Mock = "red", NT = "blue", T = "green" )) +
-  xlab("PC1: 90% variance") +
-  ylab("PC2: 4% variance") +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-dev.off()

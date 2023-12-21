@@ -57,4 +57,16 @@
     res <- as.data.frame(ego_ALL)
     return(res)
   }
+  
+  qunplotValcano <- function(dat, tagItem, baseline){
+    dat <- na.omit(dat[,-7])
+    ggplot(dat,aes(log2FoldChange,-log10(pvalue),color = sig))+ 
+      geom_point()+
+      scale_color_manual(values = c(down = "#00A087B2", up = "#DC0000B2", none = "grey")) +
+      labs(x= expression(Log[2]*" Fold Change"), y = expression(-Log[10]*" (pvalue)"), title = paste(tagItem, "up: ", table(dat$sig)[3], "Down: ", table(dat$sig)[1], sep = " ")) +
+      #annotate("text", x=0, y= (baseline + 20), label= tagItem) + 
+      #annotate("text", x=0, y= (baseline + 10), label= paste("up:",table(dat$sig)[3])) + 
+      #annotate("text", x=0, y= baseline, label= paste("down:",table(dat$sig)[1])) +
+      theme_classic()
+  }
 }

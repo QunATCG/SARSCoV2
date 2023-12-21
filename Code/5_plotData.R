@@ -20,235 +20,120 @@
 {
   library(ggplot2)
   library(gplots)
+  library(ggrepel)
   library(ggsci)
   library(ggpubr)
   library(pheatmap)
   library(VennDiagram)
   library(clusterProfiler)
   library(org.Hs.eg.db)
+  source("./Code/basicFunction.R")
 }
 
-
-
-### function def
+# load exp data
 {
-  keepOverExp <- function(dat, cutoff){
-    res <- dat[which(rowMeans(dat[,c("Mock_1_FPKM", "Mock_2_FPKM", "Mock_3_FPKM")]) >=cutoff | 
-                       rowMeans(dat[,c("T_1_FPKM", "T_2_FPKM", "T_3_FPKM")]) >=cutoff | 
-                       rowMeans(dat[,c("NT_1_FPKM", "NT_2_FPKM", "NT_3_FPKM")]) >=cutoff),]
-  }
+  exp_data_total <- read.table("./Data/ExpRNAseq/exp_Data_merge.txt", header = T, sep = "\t", stringsAsFactors = F, row.names = 1)
+  exp_data_readcounts <- exp_data_total[,1:9]
+  # remove all 0 read counts genes
+  exp_data_readcounts <- exp_data_readcounts[rowSums(exp_data_readcounts) !=0, ]
+  tpm_cols <- c("Mock_1_tpm", "Mock_2_tpm", "Mock_3_tpm", "NT_1_tpm", "NT_2_tpm", "NT_3_tpm", "T_1_tpm", "T_2_tpm", "T_3_tpm")
+  fpkm_cols <- c("Mock_1_fpkm", "Mock_2_fpkm", "Mock_3_fpkm", "NT_1_fpkm", "NT_2_fpkm", "NT_3_fpkm", "T_1_fpkm", "T_2_fpkm", "T_3_fpkm")
+  count_cols <- c("Mock_1_readcount", "Mock_2_readcount", "Mock_3_readcount","NT_1_readcount", "NT_2_readcount", "NT_3_readcount", "T_1_readcount", "T_2_readcount", "T_3_readcount")
+  # SARS genes
+  sars_genes <- read.table("./Data/matchedID.txt", header = T, sep = "\t")[62755:62766,]
   
-  keepOverReadCount <- function(dat, cutoff, tagItem){
-    if(tagItem == "star_total"){
-      res <- dat[which(rowSums(dat[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("NT_1_ReadCount", "NT_2_ReadCount", "NT_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")] >= cutoff ) >= 3),]
-    }
-    if(tagItem == "star_covid19"){
-      res <- dat[which(rowSums(dat[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("NT_1_ExpectedCount", "NT_2_ExpectedCount", "NT_3_ExpectedCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")] >= cutoff ) >= 3),]
-    }
-    if(tagItem == "hisat2_total"){
-      res <- dat[which(rowSums(dat[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("NT_1_ReadCount", "NT_2_ReadCount", "NT_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")] >= cutoff ) >= 3),]
-    }
-    if(tagItem == "hisat2_covid19"){
-      res <- dat[which(rowSums(dat[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("NT_1_ReadCount", "NT_2_ReadCount", "NT_3_ReadCount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")] >= cutoff ) >= 3),]
-    }
-    return(res)
-  }
-  
-  plotValcano <- function(dat, tagItem, baseline){
-    dat <- na.omit(dat)
-    ggplot(dat,aes(log2FoldChange,-log10(padj),color = sig))+ 
-      geom_point()+
-      scale_color_manual(values = c(down = "#00A087B2", up = "#DC0000B2", none = "grey")) +
-      labs(x=expression(Log[2]*" Fold Change"), y=expression(-Log[10]*" (padj)")) +
-      annotate("text", x=0, y= (baseline + 20), label= tagItem) + 
-      annotate("text", x=0, y= (baseline + 10), label= paste("up:",table(dat$sig)[3])) + 
-      annotate("text", x=0, y= baseline, label= paste("down:",table(dat$sig)[1])) +
-      theme_classic()
-  }
-  
-  qunGO <- function(datGene){
-    GeneForGO <- datGene
-    ego_ALL <- enrichGO(gene = GeneForGO, 
-                        #universe = dataForGO$Ensembl,
-                        OrgDb = org.Hs.eg.db,
-                        keyType = 'ENSEMBL',
-                        ont = "BP",
-                        pAdjustMethod = "BH",
-                        pvalueCutoff = 0.05,
-                        qvalueCutoff = 0.05,
-                        readable = TRUE)
-    res <- as.data.frame(ego_ALL)
-    return(res)
-  }
 }
 
-### load data
-### calculate covid19 readcounts
-### hisat2
+# PCA 
 {
-  countsData_total <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
-                      "Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
-                      "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")]
-  countsData_covid <- read.table("./Data/ExpRNAseq/Hisat2/Hisat2_exp_Covid19.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
-                       "Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
-                       "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")]
-  Covid19_geneName <- c("ORF1ab","ORF1a","S", "ORF3a", "E", "M", "ORF6", "ORF7a","ORF7b",
-                        "ORF8", "N", "ORF10")
-  Covid19_Ensembl <- countsData_covid$Ensembl
-  countsData_covid$Gene <- Covid19_geneName
-  countsData <- rbind(countsData_total, countsData_covid)
-  totalReadCounts <- colSums(countsData[,c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
-                                           "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")])
-  covidReadCounts <- colSums(countsData[c(57050:57061),c("Mock_1_ReadCount", "Mock_2_ReadCount", "Mock_3_ReadCount", "NT_1_ReadCount", "NT_2_ReadCount",
-                                                         "NT_3_ReadCount", "T_1_ReadCount", "T_2_ReadCount", "T_3_ReadCount")])
-  covidReadCountsPercent <- covidReadCounts/totalReadCounts
-  covidReadCountsPercentDataFrame1 <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = covidReadCountsPercent)
+  data_PCA <- read.table("./Data/ExpRNAseq/exp_Data_PCA.txt", header = T, row.names = 1, sep = "\t")
+  data_PCA$group <- c(rep("Mock",3), rep("NT",3), rep("T",3))
+  data_PCA$label <- c("Mock_1", "Mock_2", "Mock_3", "NT_1", "NT_2", "NT_3", "T_1", "T_2", "T_3")
+  data_PCA_percentage <- read.table("./Data/ExpRNAseq/exp_Data_PCA_percentage.txt", header = T)
+  
+  p_pca <- ggplot(data = data_PCA, mapping = aes(x = PC1, y = PC2, colour = group)) + geom_point(size = 1) +
+    geom_text_repel(aes(label = label), size = 4) +
+    scale_color_manual(values = c( Mock = "grey", NT = "#00A087B2", T = "#DC0000B2" )) +
+    xlab(paste("PC1: ",data_PCA_percentage$x[1],"% variance", sep = "")) +
+    ylab(paste("PC2: ",data_PCA_percentage$x[2],"% variance", sep = "")) +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+  p_pca
+  #pdf("./Results/Figure/0_PCA.pdf", width = 7.0, height = 5.36)
+  ggsave(filename = "./Results/Figure/0_PCA.pdf", p_pca, width = 7.0, height = 5.36)
+  #dev.off()
 }
 
+# Correlation
+{
+  data_cor <- read.table("./Data/ExpRNAseq/exp_Data_Correlation.txt", header = T, row.names = 1, sep = "\t")
+  p_pheatmap <- pheatmap(data_cor)
+  p_pheatmap
+  #pdf("./Results/Figure/1_Correlation.pdf", width = 7.0, height = 5.36)
+  ggsave(filename = "./Results/Figure/1_Correlation.pdf", p_pheatmap, width = 7.0, height = 5.36)
+  #dev.off()
+}
 
-### star
-#{
-#  countsData_total <- read.table("./Data/ExpRNAseq/STAR/Star_exp_total.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
-#                                                                                                        "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-#                                                                                                        "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
-#  countsData_covid <- read.table("./Data/ExpRNAseq/STAR/Star_exp_Covid19.txt", header = T, sep = "\t")[,c("Ensembl", "Gene",
-#                                                                                                          "Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-#                                                                                                          "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")]
-#  countsData <- rbind(countsData_total, countsData_covid)
-#  totalReadCounts <- colSums(countsData[,c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-#                                           "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
-#  covidReadCounts <- colSums(countsData[c(62755:62766),c("Mock_1_ExpectedCount", "Mock_2_ExpectedCount", "Mock_3_ExpectedCount", "NT_1_ExpectedCount", "NT_2_ExpectedCount",
-#                                                         "NT_3_ExpectedCount", "T_1_ExpectedCount", "T_2_ExpectedCount", "T_3_ExpectedCount")])
-#  covidReadCountsPercent <- covidReadCounts/totalReadCounts
-#  covidReadCountsPercentDataFrame2 <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = covidReadCountsPercent)
-#}
+# percentage of SARS readcounts
+{
+  readcounts_total <- colSums(exp_data_readcounts)
+  readcounts_sars  <- colSums(exp_data_readcounts[rownames(exp_data_readcounts) %in% sars_genes$Ensembl,])
+  sars_readcounts_percentage <- readcounts_sars/readcounts_total
+  sars_readcounts_percentage_data <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = sars_readcounts_percentage)
+  sars_readcounts_percentage_NT_mean <- mean(sars_readcounts_percentage_data$value[4:6])
+  sars_readcounts_percentage_T_mean <- mean(sars_readcounts_percentage_data$value[7:9])
+  pvalue_NT_T <- t.test(sars_readcounts_percentage_data$value[4:6], sars_readcounts_percentage_data$value[7:9])$p.value
+  myComparision <- list(c("NT","T"))
+  
+  p_covidReadCountsPercent <- ggplot(sars_readcounts_percentage_data,aes(x = sample, y = value, fill = sample)) +
+    geom_bar(stat = "summary", fun = mean, width = 0.5) +
+    scale_fill_manual(values = c("grey", "#00A087B2", "#DC0000B2")) +
+    #stat_summary(mapping = aes(fill = sample),fun = mean, geom = "bar",fun.args = list(mult = 1), width = 0.7)+
+    stat_summary(fun.data = mean_sdl,fun.args = list(mult=1),geom = "errorbar", width = 0.2)+
+    stat_compare_means(comparisons = myComparision, method = "t.test", label = "p.forma") +
+    annotate("text", x=2, y= 0.89, label= round(sars_readcounts_percentage_NT_mean,2)) + 
+    annotate("text", x=3, y= 0.8, label= round(sars_readcounts_percentage_T_mean,2)) +
+    labs(x = "",y = "Covid19 Read Counts (%)")+
+    theme_classic()
+  p_covidReadCountsPercent
+  
+  #pdf("./Results/Figure/1_covidReadCounts.pdf", width = 4.0, height = 4.36)
+  ggsave(filename = "./Results/Figure/1_covidReadCounts.pdf", p_covidReadCountsPercent, width = 4.0, height = 4.36)
+  #dev.off()
+}
 
-NTMean <- mean(covidReadCountsPercentDataFrame1$value[4:6])
-TMean <- mean(covidReadCountsPercentDataFrame1$value[7:9])
+# valcano of DE
+{
+  # DE Mock and NT
+  data_DE_Mock_NT <- read.table("./Data/ExpRNAseq/DE_Data_Mock_NT.txt", header = T, sep = "\t", stringsAsFactors = F)
+  # exclude sars genes
+  data_DE_Mock_NT <- data_DE_Mock_NT[!data_DE_Mock_NT$Ensembl %in% sars_genes$Ensembl,]
+  p_valcano_Mock_NT <- qunplotValcano(dat = data_DE_Mock_NT, tagItem = "Mock VS NT", baseline = 120)
+  p_valcano_Mock_NT
+  
+  # DE NT and T
+  data_DE_NT_T <- read.table("./Data/ExpRNAseq/DE_Data_NT_T.txt", header = T, sep = "\t", stringsAsFactors = F)
+  # exclude sars genes
+  data_DE_NT_T <- data_DE_NT_T[!data_DE_NT_T$Ensembl %in% sars_genes$Ensembl,]
+  p_valcano_NT_T <- qunplotValcano(dat = data_DE_NT_T, tagItem = "NT VS T", baseline = 20)
+  p_valcano_NT_T
+}
 
-pvalueNT_T <- t.test(covidReadCountsPercentDataFrame1$value[4:6], covidReadCountsPercentDataFrame1$value[7:9])$p.value
-myComparision <- list(c("NT","T"))
-
-pbar_covidReadCountsPercent <- ggplot(covidReadCountsPercentDataFrame1,aes(sample,value))  +
-  stat_summary(mapping=aes(fill = sample),fun=mean,geom = "bar",fun.args = list(mult=1),width=0.7)+
-  stat_summary(fun.data=mean_sdl,fun.args = list(mult=1),geom="errorbar",width=0.2)+
-  stat_compare_means(comparisons = myComparision, method = "t.test", label = "p.forma") +
-  annotate("text", x=2, y= 0.89, label= round(NTMean,2)) + 
-  annotate("text", x=3, y= 0.8, label= round(TMean,2)) +
-  labs(x = "",y = "Covid19 Read Counts (%)")+
-  #scale_y_continuous(expand = c(0,0),limits = c(0,2))+
-  theme_classic() #+
-  #theme(panel.background=element_rect(fill="white",colour="black",size=0.25),
-  #      axis.line=element_line(colour="black",size=0.25),
-  #      axis.title=element_text(size=13,color="black"),
-  #      axis.text = element_text(size=12,color="black"),
-  #      legend.position="none")
-
-pdf("./Results/Figure/1_covidReadCounts.pdf", width = 4.0, height = 4.36)
-pbar_covidReadCountsPercent
-dev.off()
-
-
-### Only read hisat2
-exp_NT_Mock <- keepOverExp(keepOverReadCount(read.csv("./Results/Table/DEG/Hisat2/DEG_NT_Mock_hisat2_result.csv", 
-                               header = T, sep = ";", stringsAsFactors = FALSE, dec = ","), 5, "hisat2_total"),1)
-#exp_NT_Mock <- subset(exp_NT_Mock, sig != "none")
-go_NT_Mock_down <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_Mock_hisat2_GO_Down.csv", header = T, sep = ";")
-go_NT_Mock_up <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_Mock_hisat2_GO_Up.csv", header = T, sep = ";")
-
-
-exp_NT_T <- keepOverExp(keepOverReadCount(read.csv("./Results/Table/DEG/Hisat2/DEG_NT_T_hisat2_result.csv", 
-                               header = T, sep = ";", stringsAsFactors = FALSE, dec = ","), 5, "hisat2_total"),1)
-#exp_NT_T <- subset(exp_NT_T, sig != "none")
-go_NT_T_down <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_T_hisat2_GO_Down.csv", header = T, sep = ";")
-go_NT_T_up <- read.csv("./Results/Table/GO/Hisat2/DEG_NT_T_hisat2_GO_Up.csv", header = T, sep = ";")
-
-
-exp_T_Mock <- keepOverExp(keepOverReadCount(read.csv("./Results/Table/DEG/Hisat2/DEG_T_Mock_hisat2_result.csv",
-                                header = T, sep = ";", stringsAsFactors = FALSE, dec = ","), 5, "hisat2_total"), 1)
-#exp_T_Mock <- subset(exp_T_Mock, sig != "none")
-go_T_Mock_down <- read.csv("./Results/Table/GO/Hisat2/DEG_T_Mock_hisat2_GO_Down.csv", header = T, sep = ";")
-go_T_Mock_up <- read.csv("./Results/Table/GO/Hisat2/DEG_T_Mock_hisat2_GO_Up.csv", header = T, sep = ";")
-
-### show DEG genes
-### NT VS Mock
-### exclude Covid genes
-p_DEG_Valcano_NT_Mock <- plotValcano(exp_NT_Mock[13:nrow(exp_NT_Mock),],"NT VS Mock", 120)
-pdf("./Results/Figure/2_p_DEG_Valcano_NT_Mock.pdf", width = 5.8, height = 4.6)
-p_DEG_Valcano_NT_Mock
-dev.off()
-
-p_DEG_Valcano_T_Mock <- plotValcano(exp_T_Mock[13:nrow(exp_T_Mock),],"T VS Mock", 120)
-pdf("./Results/Figure/2_p_DEG_Valcano_T_Mock.pdf", width = 5.8, height = 4.6)
-p_DEG_Valcano_T_Mock
-dev.off()
-
-p_DEG_Valcano_T_NT <- plotValcano(exp_NT_T[13:nrow(exp_NT_Mock),],"T VS NT", 30)
-pdf("./Results/Figure/2_p_DEG_Valcano_T_NT.pdf", width = 5.8, height = 4.6)
-p_DEG_Valcano_T_NT
-dev.off()
-
-NT_Mock_up_genes <- na.omit(setdiff(exp_NT_Mock[exp_NT_Mock$sig == "up",]$Ensembl, Covid19_Ensembl))
-NT_Mock_down_genes <- na.omit(setdiff(exp_NT_Mock[exp_NT_Mock$sig == "down",]$Ensembl, Covid19_Ensembl))
-
-T_Mock_up_genes <- na.omit(setdiff(exp_T_Mock[exp_T_Mock$sig == "up",]$Ensembl, Covid19_Ensembl))
-T_Mock_down_genes <- na.omit(setdiff(exp_T_Mock[exp_T_Mock$sig == "down",]$Ensembl, Covid19_Ensembl))
-
-T_NT_up_genes <- na.omit(setdiff(exp_NT_T[exp_NT_T$sig == "up",]$Ensembl, Covid19_Ensembl))
-T_NT_down_genes <- na.omit(setdiff(exp_NT_T[exp_NT_T$sig == "down",]$Ensembl, Covid19_Ensembl))
-
-write.table(NT_Mock_up_genes, "./Results/Table/NT_Mock_up_genes.txt", quote = F, row.names = F, col.names = F)
-write.table(NT_Mock_down_genes, "./Results/Table/NT_Mock_down_genes.txt", quote = F, row.names = F, col.names = F)
-write.table(T_Mock_up_genes, "./Results/Table/T_Mock_up_genes.txt", quote = F, row.names = F, col.names = F)
-write.table(T_Mock_down_genes, "./Results/Table/T_Mock_down_genes.txt", quote = F, row.names = F, col.names = F)
-write.table(T_NT_up_genes, "./Results/Table/T_NT_up_genes.txt", quote = F, row.names = F, col.names = F)
-write.table(T_NT_down_genes, "./Results/Table/T_NT_down_genes.txt", quote = F, row.names = F, col.names = F)
-
-venn.diagram(
-  x = list(NT_Mock_up_genes, NT_Mock_down_genes, T_Mock_up_genes, T_Mock_down_genes),
-  category.names = c("NT_Mock_up" , "NT_Mock_down" , "T_Mock_up", "T_Mock_down"),
-  filename = './Results/Figure/3_DEG_Overlap_1.tiff', imagetype = "tiff",
-  output=T, disable.logging = T,  width = 4000
-)
-
-venn.diagram(
-  x = list(NT_Mock_up_genes, NT_Mock_down_genes, T_NT_up_genes, T_NT_down_genes),
-  category.names = c("NT_Mock_up" , "NT_Mock_down" , "T_NT_up", "T_NT_down"),
-  filename = './Results/Figure/3_DEG_Overlap_2.tiff', imagetype = "tiff",
-  output=T, disable.logging = T,  width = 4000
-)
-
-
-### merge expdata
-exp_Data <- rbind(subset(exp_NT_Mock[,1:36], exp_NT_Mock[,1:36]$sig != "none"), 
-                  subset(exp_NT_T[,1:36], exp_NT_T[,1:36]$sig != "none"), 
-                  subset(exp_T_Mock[,1:36], exp_T_Mock[,1:36]$sig != "none"))
-exp_Data <- exp_Data[!duplicated(exp_Data$Ensembl,),]
-exp_Data <- exp_Data[!duplicated(exp_Data$Gene,),]
-
-T_Uniq_up_genes <- setdiff(T_NT_up_genes, NT_Mock_up_genes)
-T_Uniq_down_genes <- setdiff(T_NT_down_genes, NT_Mock_down_genes)
-T_Uniq_genes <- c(T_Uniq_up_genes, T_Uniq_down_genes)
-T_Uniq_genes_exp <- exp_Data[exp_Data$Ensembl %in% T_Uniq_genes,]
-
-T_Uniq_genes_exp_Plot <- T_Uniq_genes_exp[,8:16]
-rownames(T_Uniq_genes_exp_Plot) <- T_Uniq_genes_exp$Gene
-
-pdf("./Results/Figure/4_DEG_Uniq_T.pdf", width = 5.69, height = 11.9)
-pheatmap(T_Uniq_genes_exp_Plot, scale = "row", show_rownames = T, cluster_cols = F, cutree_rows = 2)
-dev.off()
-
-kk_total <- qunGO(T_Uniq_genes_exp$Ensembl)
-kk_up <- qunGO(T_Uniq_up_genes)
-kk_down <- qunGO(T_Uniq_down_genes)
-
+# Expression Change
+{
+  # get up/down expressed genes of MockVSNT group
+  # tpm can be used to compared expression level in different condition
+  data_genes_DE_Mock_NT_Ensembl_total <- data_DE_Mock_NT[data_DE_Mock_NT$sig != "none",]$Ensembl
+  data_genes_DE_Mock_NT_Ensembl_up <- data_DE_Mock_NT[data_DE_Mock_NT$sig == "up",]$Ensembl
+  data_genes_DE_Mock_NT_Ensembl_down <- data_DE_Mock_NT[data_DE_Mock_NT$sig == "down",]$Ensembl
+  data_genes_DE_Mock_NT_tpm_total <- exp_data_total[rownames(exp_data_total) %in% data_genes_DE_Mock_NT_Ensembl_total,][,tpm_cols]
+  data_genes_DE_Mock_NT_tpm_total_zscale <- t(scale(t(data_genes_DE_Mock_NT_tpm_total)))
+  data_genes_DE_Mock_NT_tpm_up_zscale <- data_genes_DE_Mock_NT_tpm_total_zscale[rownames(data_genes_DE_Mock_NT_tpm_total_zscale) %in% data_genes_DE_Mock_NT_Ensembl_up,]
+  data_genes_DE_Mock_NT_tpm_down_zscale <- data_genes_DE_Mock_NT_tpm_total_zscale[rownames(data_genes_DE_Mock_NT_tpm_total_zscale) %in% data_genes_DE_Mock_NT_Ensembl_down,]
+  
+  # box plot
+  
+}
 
 
