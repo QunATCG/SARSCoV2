@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-21 19:34:04
+ # @LastEditTime: 2023-12-21 19:35:19
 ### 
 
 #--------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ TRIM_DIR=path_trimOut
 #--------------------------------------------------------------------------------
 ### 0. Remove rRNA
 #### Hisat2
-#### 0.1 download human rRNA sequence from NCBI. Also, we provide human rRNA fasta in our github 
+#### 0.1 download human rRNA sequence from NCBI. Also, we provide human rRNA fasta in this repository
 #### 0.2 build rRNA sequence index (Human_rRNA_Index) using hisat2
 #### 0.3 exclude rRNA sequence
 hisat2 -p $THREADS -x $Human_rRNA_Index -1 $FQ1 -2 $FQ2 --un-conc-gz ${FQ1}_${FQ2}.rRNA.dep.fastq.gz
