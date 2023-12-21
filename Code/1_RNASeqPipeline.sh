@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-21 19:31:34
+ # @LastEditTime: 2023-12-21 19:34:04
 ### 
 
 #--------------------------------------------------------------------------------
@@ -11,14 +11,17 @@
 #### you need get reference, annotation files ready.
 #### Also, you can download these files from illumina website
 #### https://support.illumina.com/sequencing/sequencing_software/igenome.html
-#### You can follow these instructions to build index files
+#### You can follow these instructions to build your own RNAseq pipeline
 #### https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+#### https://github.com/MultiQC/MultiQC
 #### https://daehwankimlab.github.io/hisat2/manual/
 #### https://subread.sourceforge.net/featureCounts.html
 #### https://htseq.readthedocs.io/en/release_0.11.1/count.html
 #### https://ccb.jhu.edu/software/stringtie/
 #--------------------------------------------------------------------------------
 
+
+### our analysis pipeline 
 #--------------------------------------------------------------------------------
 ### Default setting
 #### samples dir path
@@ -55,6 +58,8 @@ trim_galore -q 30 -stringency 3 -length 20 --phred33 -fastqc \
             -clip_R1 3 -clip_R2 3 -e 0.1 -dont_gzip \
             -paired ${FQ1}_${FQ2}.rRNA.dep.fastq.1.gz ${FQ1}_${FQ2}.rRNA.dep.fastq.2.gz \
             --output_dir $TRIM_DIR
+#### https://github.com/MultiQC/MultiQC
+multiqc $TRIM_DIR
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
