@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-21 19:35:19
+ # @LastEditTime: 2023-12-21 19:36:25
 ### 
 
 #--------------------------------------------------------------------------------
@@ -54,11 +54,12 @@ hisat2 -p $THREADS -x $Human_rRNA_Index -1 $FQ1 -2 $FQ2 --un-conc-gz ${FQ1}_${FQ
 ### 1. QC and Trim
 #### software: trim_galore
 #### https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+#### https://github.com/MultiQC/MultiQC
 trim_galore -q 30 -stringency 3 -length 20 --phred33 -fastqc \
             -clip_R1 3 -clip_R2 3 -e 0.1 -dont_gzip \
             -paired ${FQ1}_${FQ2}.rRNA.dep.fastq.1.gz ${FQ1}_${FQ2}.rRNA.dep.fastq.2.gz \
             --output_dir $TRIM_DIR
-#### https://github.com/MultiQC/MultiQC
+
 multiqc $TRIM_DIR
 #--------------------------------------------------------------------------------
 
@@ -67,7 +68,8 @@ multiqc $TRIM_DIR
 #### software: Hisat2 
 #### https://daehwankimlab.github.io/hisat2/manual/
 
-hisat2 -p $THREADS -x $GENOMEINDEX -1 ${FQ1}_${FQ2}.rRNA.dep.fastq.1.gz_val_1.fq.gz -2 ${FQ1}_${FQ2}.rRNA.dep.fastq.2.gz_val_2.fq.gz \
+hisat2 -p $THREADS -x $GENOMEINDEX -1 ${FQ1}_${FQ2}.rRNA.dep.fastq.1.gz_val_1.fq.gz \ 
+    -2 ${FQ1}_${FQ2}.rRNA.dep.fastq.2.gz_val_2.fq.gz \
     --summary-file summary.txt -S ${FQ1}_${FQ2}.sam
 
 samtools view -@ $THREADS -bS ${FQ1}_${FQ2}.sam > ${FQ1}_${FQ2}.bam;
@@ -81,7 +83,10 @@ samtools index -@ $THREADS ${FQ1}_${FQ2}.sorted.bam
 #### https://subread.sourceforge.net/featureCounts.html
 #### https://htseq.readthedocs.io/en/release_0.11.1/count.html
 #### https://ccb.jhu.edu/software/stringtie/
-featureCounts -T $THREADS -a $GTF -o ${FQ1}_${FQ2}.counts.txt --countReadPairs -p -t exon -g gene_id ${FQ1}_${FQ2}.sorted.bam
+featureCounts -T $THREADS -a $GTF -o ${FQ1}_${FQ2}.counts.txt --countReadPairs -p \ 
+    -t exon -g gene_id ${FQ1}_${FQ2}.sorted.bam
+
 htseq-count -f bam -s no -t exon -i gene_id --nonunique=none ${FQ1}_${FQ2}.sorted.bam $GTF > htseq.count
+
 stringtie -e -B -p $THREADS -G $GTF -A ${FQ1}_${FQ2}_gene_abund.tab -o ${FQ1}_${FQ2}.gtf ${FQ1}_${FQ2}.sorted.bam
 #--------------------------------------------------------------------------------
