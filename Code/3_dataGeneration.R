@@ -18,11 +18,11 @@
 
 #### generate data from raw files
 {
-  ensembl_symbol <- read.table("./Data/matchedID.txt", header = T, sep = "\t", stringsAsFactors = F)
-  sample_info <- read.table("./Data/Sample_information.txt", header = T, sep = "\t", stringsAsFactors = F)
-  exp_readcount <- read.table("./Data/ExpRNAseq/Human_Covid19.gene.readCount.txt", header = T, sep = "\t", stringsAsFactors = F)
-  exp_tpm <- read.table("./Data/ExpRNAseq/Human_Covid19.gene.tpm", header = T, sep = "\t", stringsAsFactors = F)
-  exp_fpkm <- read.table("./Data/ExpRNAseq/Human_Covid19.gene.fpkm",header = T, sep = "\t", stringsAsFactors = F)
+  ensembl_symbol <- read.table("./Data/SourceData/matchedID.txt", header = T, sep = "\t", stringsAsFactors = F)
+  sample_info <- read.table("./Data/SourceData/Sample_information.txt", header = T, sep = "\t", stringsAsFactors = F)
+  exp_readcount <- read.table("./Data/ExpRNAseq/Human_Covid19_removerRNA.gene.readCounts", header = T, sep = "\t", stringsAsFactors = F)
+  exp_tpm <- read.table("./Data/ExpRNAseq/Human_Covid19_removerRNA.gene.tpm", header = T, sep = "\t", stringsAsFactors = F)
+  exp_fpkm <- read.table("./Data/ExpRNAseq/Human_Covid19_removerRNA.gene.fpkm",header = T, sep = "\t", stringsAsFactors = F)
   exp_colnames_common <- c("Mock_1", "Mock_2", "Mock_3", "NT_1", "NT_2", "NT_3", "T_1", "T_2", "T_3")
   colnames(exp_readcount) <- c("Ensembl",paste(exp_colnames_common, "readcount", sep = "_"))
   colnames(exp_tpm) <- c("Ensembl",paste(exp_colnames_common, "tpm", sep = "_"))

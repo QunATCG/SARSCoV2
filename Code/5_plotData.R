@@ -40,16 +40,15 @@
   fpkm_cols <- c("Mock_1_fpkm", "Mock_2_fpkm", "Mock_3_fpkm", "NT_1_fpkm", "NT_2_fpkm", "NT_3_fpkm", "T_1_fpkm", "T_2_fpkm", "T_3_fpkm")
   count_cols <- c("Mock_1_readcount", "Mock_2_readcount", "Mock_3_readcount","NT_1_readcount", "NT_2_readcount", "NT_3_readcount", "T_1_readcount", "T_2_readcount", "T_3_readcount")
   # SARS genes
-  sars_genes <- read.table("./Data/matchedID.txt", header = T, sep = "\t")[62755:62766,]
-  
+  sars_genes <- read.table("./Data/SourceData/matchedID.txt", header = T, sep = "\t")[62755:62766,]
 }
 
 # PCA 
 {
-  data_PCA <- read.table("./Data/ExpRNAseq/exp_Data_PCA.txt", header = T, row.names = 1, sep = "\t")
+  data_PCA <- read.table("./Results/Table/exp_Data_PCA.txt", header = T, row.names = 1, sep = "\t")
   data_PCA$group <- c(rep("Mock",3), rep("NT",3), rep("T",3))
   data_PCA$label <- c("Mock_1", "Mock_2", "Mock_3", "NT_1", "NT_2", "NT_3", "T_1", "T_2", "T_3")
-  data_PCA_percentage <- read.table("./Data/ExpRNAseq/exp_Data_PCA_percentage.txt", header = T)
+  data_PCA_percentage <- read.table("./Results/Table/exp_Data_PCA_percentage.txt", header = T)
   
   p_pca <- ggplot(data = data_PCA, mapping = aes(x = PC1, y = PC2, colour = group)) + geom_point(size = 1) +
     geom_text_repel(aes(label = label), size = 4) +
@@ -67,7 +66,7 @@
 
 # Correlation
 {
-  data_cor <- read.table("./Data/ExpRNAseq/exp_Data_Correlation.txt", header = T, row.names = 1, sep = "\t")
+  data_cor <- read.table("./Results/Table/exp_Data_Correlation.txt", header = T, row.names = 1, sep = "\t")
   p_pheatmap <- pheatmap(data_cor)
   p_pheatmap
   #pdf("./Results/Figure/1_Correlation.pdf", width = 7.0, height = 5.36)
@@ -106,7 +105,7 @@
 # valcano of DE
 {
   # DE Mock and NT
-  data_DE_Mock_NT <- read.table("./Data/ExpRNAseq/DE_Data_Mock_NT.txt", header = T, sep = "\t", stringsAsFactors = F)
+  data_DE_Mock_NT <- read.table("./Results/Table/DEG/DE_Data_Mock_NT.txt", header = T, sep = "\t", stringsAsFactors = F)
   # exclude sars genes
   data_DE_Mock_NT <- data_DE_Mock_NT[!data_DE_Mock_NT$Ensembl %in% sars_genes$Ensembl,]
   p_valcano_Mock_NT <- qunplotValcano(dat = data_DE_Mock_NT, tagItem = "Mock VS NT", baseline = 120)
