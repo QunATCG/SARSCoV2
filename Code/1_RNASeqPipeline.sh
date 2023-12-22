@@ -3,7 +3,7 @@
  # @Author: Qun Li
  # @Email: qun.li@ki.se
  # @Date: 2023-11-23 11:25:54
- # @LastEditTime: 2023-12-21 19:37:40
+ # @LastEditTime: 2023-12-22 14:26:52
 ### 
 
 #--------------------------------------------------------------------------------
@@ -14,20 +14,29 @@
 #### You can follow these instructions to build your own RNAseq pipeline
 #### https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
 #### https://github.com/MultiQC/MultiQC
+#### https://github.com/alexdobin/STAR
 #### https://daehwankimlab.github.io/hisat2/manual/
+#### https://github.com/deweylab/RSEM
 #### https://subread.sourceforge.net/featureCounts.html
-#### https://htseq.readthedocs.io/en/release_0.11.1/count.html
-#### https://ccb.jhu.edu/software/stringtie/
 #--------------------------------------------------------------------------------
 
 
-### Analysis pipeline 
+### Analysis pipeline
+### <STAR - RSEM>
+### this pipeline was used by some groups, such as
+### https://pubmed.ncbi.nlm.nih.gov/38097578/
+### https://pubmed.ncbi.nlm.nih.gov/38092806/
+### https://pubmed.ncbi.nlm.nih.gov/33870146/
+### https://pubmed.ncbi.nlm.nih.gov/34528097/
+### https://pubmed.ncbi.nlm.nih.gov/38049398/
 #--------------------------------------------------------------------------------
 ### Default setting
 #### samples dir path
 SAMPLE_DIR=path_samples
 #### genome index path
 GENOMEINDEX=path_genome
+#### RSEM index
+RSEMINDEX=path_RSEM_Index
 #### gtf path
 GTF=path_GTF
 #### FASTQ1 path
@@ -65,28 +74,27 @@ multiqc $TRIM_DIR
 
 #--------------------------------------------------------------------------------
 ### 2. Mapping
-#### software: Hisat2 
-#### https://daehwankimlab.github.io/hisat2/manual/
-
-hisat2 -p $THREADS -x $GENOMEINDEX -1 ${FQ1}_${FQ2}.rRNA.dep.fastq.1.gz_val_1.fq.gz \ 
-    -2 ${FQ1}_${FQ2}.rRNA.dep.fastq.2.gz_val_2.fq.gz \
-    --summary-file summary.txt -S ${FQ1}_${FQ2}.sam
-
-samtools view -@ $THREADS -bS ${FQ1}_${FQ2}.sam > ${FQ1}_${FQ2}.bam;
-samtools sort -@ $THREADS ${FQ1}_${FQ2}.bam -o ${FQ1}_${FQ2}.sorted.bam;
-samtools index -@ $THREADS ${FQ1}_${FQ2}.sorted.bam
+#### software: STAR
+#### https://github.com/alexdobin/STAR
+STAR --outSAMtype BAM SortedByCoordinate --runThreadN $THREADS \
+        --readFilesCommand zcat --genomeDir $GENOMEINDEX \
+        --readFilesIn ${FQ1}_${FQ2}.rRNA.dep.fastq.1.gz_val_1.fq.gz \
+        ${FQ1}_${FQ2}.rRNA.dep.fastq.2.gz_val_2.fq.gz \
+        --quantMode TranscriptomeSAM GeneCounts \
+        --outFileNamePrefix ${FQ1}_${FQ2}
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
 ### 3. Quantify gene expression
-#### Software: Featurecounts, HTseq and stringtie
+#### Software: RSEM featureCounts
 #### https://subread.sourceforge.net/featureCounts.html
 #### https://htseq.readthedocs.io/en/release_0.11.1/count.html
 #### https://ccb.jhu.edu/software/stringtie/
+rsem-calculate-expression --paired-end -no-bam-output --alignments \
+        -p $THREADS ${FQ1}_${FQ2}_Aligned.toTranscriptome.out.bam \
+        ${RSEMINDEX} ${FQ1}_${FQ2}
+
+
 featureCounts -T $THREADS -a $GTF -o ${FQ1}_${FQ2}.counts.txt --countReadPairs -p \ 
-    -t exon -g gene_id ${FQ1}_${FQ2}.sorted.bam
-
-htseq-count -f bam -s no -t exon -i gene_id --nonunique=none ${FQ1}_${FQ2}.sorted.bam $GTF > htseq.count
-
-stringtie -e -B -p $THREADS -G $GTF -A ${FQ1}_${FQ2}_gene_abund.tab -o ${FQ1}_${FQ2}.gtf ${FQ1}_${FQ2}.sorted.bam
+    -t exon -g gene_id ${FQ1}_${FQ2}_Aligned.sortedByCoord.out.bam
 #--------------------------------------------------------------------------------
