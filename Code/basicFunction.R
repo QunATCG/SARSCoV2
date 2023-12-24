@@ -19,9 +19,9 @@
   }
   
   keepOverReadCount <- function(dat, cutoff){
-    res <- dat[which(rowSums(dat[,c("Mock_1_readcount", "Mock_2_readcount", "Mock_3_readcount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("NT_1_readcount", "NT_2_readcount", "NT_3_readcount")] >= cutoff ) >= 3 |
-                         rowSums(dat[,c("T_1_readcount", "T_2_readcount", "T_3_readcount")] >= cutoff ) >= 3),]
+    res <- dat[which(rowSums(dat[,c("Mock_1_rawcount", "Mock_2_rawcount", "Mock_3_rawcount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("NT_1_rawcount", "NT_2_rawcount", "NT_3_rawcount")] >= cutoff ) >= 3 |
+                         rowSums(dat[,c("T_1_rawcount", "T_2_rawcount", "T_3_rawcount")] >= cutoff ) >= 3),]
     return(res)
   }
   
@@ -31,6 +31,10 @@
       res1[which(res1$log2FoldChange >= log2(fc) & res1$pvalue < pthreshold),'sig'] <- 'up'
       res1[which(res1$log2FoldChange <= -log2(fc) & res1$pvalue < pthreshold),'sig'] <- 'down'
       res1[which(abs(res1$log2FoldChange) <= log2(fc) | res1$pvalue >= pthreshold),'sig'] <- 'none'
+      # strict
+      res1[which(res1$log2FoldChange >= log2(2) & res1$padj < 0.05),'sig_strict'] <- 'up'
+      res1[which(res1$log2FoldChange <= -log2(2) & res1$padj < 0.05),'sig_strict'] <- 'down'
+      res1[which(abs(res1$log2FoldChange) <= log2(2) | res1$padj >= 0.05),'sig_strict'] <- 'none'
       return(res1)
     }
     if(tagItem == "controlVStreat"){
@@ -38,6 +42,10 @@
       res1[which(res1$log2FoldChange >= log2(fc) & res1$pvalue < pthreshold),'sig'] <- 'down'
       res1[which(res1$log2FoldChange <= -log2(fc) & res1$pvalue < pthreshold),'sig'] <- 'up'
       res1[which(abs(res1$log2FoldChange) <= log2(fc) | res1$pvalue >= pthreshold),'sig'] <- 'none'
+      # strict
+      res1[which(res1$log2FoldChange >= log2(2) & res1$padj < 0.05),'sig_strict'] <- 'down'
+      res1[which(res1$log2FoldChange <= -log2(2) & res1$padj < 0.05),'sig_strict'] <- 'up'
+      res1[which(abs(res1$log2FoldChange) <= log2(2) | res1$padj >= 0.05),'sig_strict'] <- 'none'
       return(res1)
     }
   }
@@ -58,15 +66,13 @@
     return(res)
   }
   
-  qunplotValcano <- function(dat, tagItem, baseline){
+  qunplotValcano <- function(dat, tagItem){
     dat <- na.omit(dat[,-7])
     ggplot(dat,aes(log2FoldChange,-log10(pvalue),color = sig))+ 
       geom_point()+
       scale_color_manual(values = c(down = "#00A087B2", up = "#DC0000B2", none = "grey")) +
-      labs(x= expression(Log[2]*" Fold Change"), y = expression(-Log[10]*" (pvalue)"), title = paste(tagItem, "up: ", table(dat$sig)[3], "Down: ", table(dat$sig)[1], sep = " ")) +
-      #annotate("text", x=0, y= (baseline + 20), label= tagItem) + 
-      #annotate("text", x=0, y= (baseline + 10), label= paste("up:",table(dat$sig)[3])) + 
-      #annotate("text", x=0, y= baseline, label= paste("down:",table(dat$sig)[1])) +
+      labs(x= expression(Log[2]*" Fold Change"), y = expression(-Log[10]*" (pvalue)"), 
+           title = paste(tagItem, "up: ", table(dat$sig)[3], "Down: ", table(dat$sig)[1], sep = " ")) +
       theme_classic()
   }
 }
