@@ -67,10 +67,10 @@
   }
   
   qunplotValcano <- function(dat, tagItem){
-    dat <- na.omit(dat[,-7])
+    #dat <- na.omit(dat[,-7])
     ggplot(dat,aes(log2FoldChange,-log10(pvalue),color = sig))+ 
       geom_point()+
-      scale_color_manual(values = c(down = "#00A087B2", up = "#DC0000B2", none = "grey")) +
+      scale_color_manual(values = c(down = "Dark Green", up = "Dark Red", none = "grey")) +
       labs(x= expression(Log[2]*" Fold Change"), y = expression(-Log[10]*" (pvalue)"), 
            title = paste(tagItem, "up: ", table(dat$sig)[3], "Down: ", table(dat$sig)[1], sep = " ")) +
       theme_classic()

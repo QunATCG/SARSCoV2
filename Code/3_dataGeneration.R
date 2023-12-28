@@ -20,8 +20,8 @@
 {
   ensembl_symbol <- read.table("./Data/SourceData/matchedID.txt", header = T, sep = "\t", stringsAsFactors = F)
   sample_info <- read.table("./Data/SourceData/Sample_information.txt", header = T, sep = "\t", stringsAsFactors = F)
-  exp_fpkm <- read.table("./Data/ExpRNAseq/Human_Covid19_removerRNA.gene.fpkm", header = T, sep = "\t", stringsAsFactors = F)
-  exp_readcounts <- read.table("./Data/ExpRNAseq/Human_Covid19_removerRNA.gene.readCounts", header = T, sep = "\t", stringsAsFactors = F)
+  exp_fpkm <- read.table("./Data/ExpRNAseq/finalExp/gene_expression_fpkm.txt", header = T, sep = "\t", stringsAsFactors = F)
+  exp_readcounts <- read.table("./Data/ExpRNAseq/finalExp/Human_Covid19_removerRNA.gene.readCounts", header = T, sep = "\t", stringsAsFactors = F)
   exp_colnames_common <- c("Mock_1", "Mock_2", "Mock_3", "NT_1", "NT_2", "NT_3", "T_1", "T_2", "T_3")
   colnames(exp_fpkm) <- c("Ensembl",paste(exp_colnames_common, "fpkm", sep = "_"))
   colnames(exp_readcounts) <- c("Ensembl", paste(exp_colnames_common, "rawcount", sep = "_"))
