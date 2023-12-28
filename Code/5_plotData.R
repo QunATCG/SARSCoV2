@@ -53,10 +53,10 @@
 
 # PCA 
 {
-  data_PCA <- read.table("./Results/Table/exp_Data_readcount_PCA.txt", header = T, row.names = 1, sep = "\t")
+  data_PCA <- read.table("./Results/Table/Similarity/exp_Data_readcount_PCA.txt", header = T, row.names = 1, sep = "\t")
   data_PCA$group <- c(rep("Mock",3), rep("NT",3), rep("T",3))
   data_PCA$label <- c("Mock_1", "Mock_2", "Mock_3", "NT_1", "NT_2", "NT_3", "T_1", "T_2", "T_3")
-  data_PCA_percentage <- read.table("./Results/Table/exp_Data_readcount_PCA_percentage.txt", header = T)
+  data_PCA_percentage <- read.table("./Results/Table/Similarity/exp_Data_readcount_PCA_percentage.txt", header = T)
   
   p_pca <- ggplot(data = data_PCA, mapping = aes(x = PC1, y = PC2, colour = group)) + geom_point(size = 5) +
     geom_text_repel(aes(label = label), size = 4) +
@@ -68,23 +68,23 @@
           panel.grid.minor = element_blank())
   p_pca
   #pdf("./Results/Figure/0_PCA.pdf", width = 7.0, height = 5.36)
-  ggsave(filename = "./Results/Figure/0_PCA.pdf", p_pca, width = 7.0, height = 5.36)
+  ggsave(filename = "./Results/Figure/0_PCA.pdf", p_pca, width = 4.0, height = 3.0)
   #dev.off()
 }
 
 # Correlation
 {
-  data_cor <- read.table("./Results/Table/exp_Data_readcount_cor.txt", header = T, row.names = 1, sep = "\t")
-  p_pheatmap <- pheatmap(data_cor, clustering_method = "median")
+  data_cor <- read.table("./Results/Table/Similarity/exp_Data_readcount_cor.txt", header = T, row.names = 1, sep = "\t")
+  p_pheatmap <- pheatmap(data_cor, treeheight_col = 10, treeheight_row = 10, cellwidth = 10, cellheight = 10)
   p_pheatmap
   #pdf("./Results/Figure/1_Correlation.pdf", width = 7.0, height = 5.36)
-  ggsave(filename = "./Results/Figure/1_Correlation.pdf", p_pheatmap, width = 7.0, height = 5.36)
+  ggsave(filename = "./Results/Figure/1_Correlation.pdf", p_pheatmap, width = 4.0, height = 3.0)
   #dev.off()
 }
 
 # percentage of SARS readcounts
 {
-  data_rawcounts_total_sars <- read.table("./Data/ExpRNAseq/finalExp/Human_Covid19_removerRNA.gene.readCounts", header = T, sep = "\t", row.names = 1)
+  data_rawcounts_total_sars <- read.table("./Data/ExpRNAseq/Human_Covid19_removerRNA.gene.readCounts", header = T, sep = "\t", row.names = 1)
   rawcounts_total <- colSums(data_rawcounts_total_sars)
   rawcounts_sars  <- colSums(data_rawcounts_total_sars[rownames(data_rawcounts_total_sars) %in% sars_genes,])
   sars_rawcounts_percentage <- rawcounts_sars/rawcounts_total
@@ -107,7 +107,7 @@
   p_covidReadCountsPercent
   
   #pdf("./Results/Figure/1_covidReadCounts.pdf", width = 4.0, height = 4.36)
-  ggsave(filename = "./Results/Figure/2_covidReadCounts.pdf", p_covidReadCountsPercent, width = 4.0, height = 4.36)
+  ggsave(filename = "./Results/Figure/2_covidReadCounts.pdf", p_covidReadCountsPercent, width = 4.1, height = 4.6)
   #dev.off()
 }
 
@@ -117,24 +117,24 @@
   data_DE_Mock_NT <- read.table("./Results/Table/DEG/DE_Data_Mock_NT.txt", header = T, sep = "\t", stringsAsFactors = F)
   # exclude sars genes
   data_DE_Mock_NT <- data_DE_Mock_NT[!data_DE_Mock_NT$Ensembl %in% sars_genes,]
-  data_DE_Mock_NT$log2FoldChange <- -data_DE_Mock_NT$log2FoldChange
-  p_valcano_Mock_NT <- qunplotValcano(dat = data_DE_Mock_NT, tagItem = "Mock VS NT")
+  p_valcano_Mock_NT <- qunplotValcano(dat = data_DE_Mock_NT, tagItem = "Mock VS NT", 8)
   p_valcano_Mock_NT
+  ggsave(filename = "./Results/Figure/3_DE_Mock_NT_valcano.pdf", p_valcano_Mock_NT, width = 5.4, height = 4.7)
   
   # DE NT and T
   data_DE_NT_T <- read.table("./Results/Table/DEG/DE_Data_NT_T.txt", header = T, sep = "\t", stringsAsFactors = F)
   # exclude sars genes
   data_DE_NT_T <- data_DE_NT_T[!data_DE_NT_T$Ensembl %in% sars_genes,]
-  data_DE_NT_T$log2FoldChange <- -data_DE_NT_T$log2FoldChange
-  p_valcano_NT_T <- qunplotValcano(dat = data_DE_NT_T, tagItem = "NT VS T")
+  p_valcano_NT_T <- qunplotValcano(dat = data_DE_NT_T, tagItem = "NT VS T", 3)
   p_valcano_NT_T
+  ggsave(filename = "./Results/Figure/4_DE_NT_T_valcano.pdf", p_valcano_NT_T, width = 5.4, height = 4.7)
 }
 
 # Expression Change
 {
   # get up/down expressed genes of MockVSNT group
-  Ensembl_Mock_NT_up <- setdiff(data_DE_Mock_NT[data_DE_Mock_NT$sig_strict == "up",]$Ensembl, sars_genes)
-  Ensembl_Mock_NT_down <- setdiff(data_DE_Mock_NT[data_DE_Mock_NT$sig_strict == "down",]$Ensembl, sars_genes)
+  Ensembl_Mock_NT_up <- setdiff(data_DE_Mock_NT[data_DE_Mock_NT$sig == "up",]$Ensembl, sars_genes)
+  Ensembl_Mock_NT_down <- setdiff(data_DE_Mock_NT[data_DE_Mock_NT$sig == "down",]$Ensembl, sars_genes)
 
   exp_Mock_NT_up <- exp_data_fpkm[rownames(exp_data_fpkm) %in% Ensembl_Mock_NT_up,][,fpkm_mean_cols]
   exp_Mock_NT_up_scale <- data.frame(na.omit(t(scale(t(exp_Mock_NT_up),center = TRUE, scale = TRUE))))
@@ -182,7 +182,7 @@
   # box plot
   exp_Mock_NT_up_scale_stack <- stack(exp_Mock_NT_up_scale[,1:3])
   exp_Mock_NT_down_scale_stack <- stack(exp_Mock_NT_down_scale[,1:3])
-  exp_Mock_NT_scale_stack <- rbind(exp_Mock_NT_up_scale_stack, exp_Mock_NT_down_scale_stack)
+  exp_Mock_NT_scale_stack <- rbind(exp_Mock_NT_down_scale_stack,exp_Mock_NT_up_scale_stack)
   
   p_box_1 <- ggplot(exp_Mock_NT_up_scale_stack, aes(x=ind, y=values, fill = ind)) + 
     geom_boxplot(outlier.shape = NA) + 
@@ -201,14 +201,14 @@
   myComparision2 <- list(c("NT_mean_up","T_mean_up"), c("NT_mean_down","T_mean_down"))
   p_box_3 <- ggplot(exp_Mock_NT_scale_stack, aes(x=ind, y=values, fill = ind)) + 
     geom_boxplot(outlier.shape = NA) + 
-    scale_fill_manual(values = c("grey", "Dark Red", "Brown", "black","Dark Green", "Olive Drab")) +
+    scale_fill_manual(values = c("black","Dark Green", "Olive Drab", "grey", "Dark Red", "Brown")) +
     #stat_summary(fun.data = mean_sdl,fun.args = list(mult=1), geom = "errorbar", width = 0.2)+
     stat_compare_means(comparisons = myComparision2, method = "wilcox.test", label = "p.forma") +
     labs(x = "",y = "Average FPKM (Z scaled)") +
     theme_classic() + 
     theme(axis.text.x = element_blank())
   p_box_3
-  ggsave(filename = "./Results/Figure/3_expReverse.pdf", p_box_3, width = 5.6, height = 5.0)
+  ggsave(filename = "./Results/Figure/5_expReverse.pdf", p_box_3, width = 5.6, height = 5.0)
 }
 
 # GO function analysis

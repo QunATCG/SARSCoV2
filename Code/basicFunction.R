@@ -50,26 +50,32 @@
     }
   }
   
-  qunGO <- function(dat, tagItem){
+  qunGO <- function(dat, tagItem, isStrict){
     dataForGO <- dat
-    GeneForGO <- dataForGO[dataForGO$sig == tagItem,]$Ensembl
+    if(isStrict == "T"){
+      GeneForGO <- dataForGO[dataForGO$sig_strict == tagItem,]$Ensembl
+    }
+    if(isStrict == "N"){
+      GeneForGO <- dataForGO[dataForGO$sig == tagItem,]$Ensembl
+    }
     ego_ALL <- enrichGO(gene = GeneForGO, 
                         universe = dataForGO$Ensembl,
                         OrgDb = org.Hs.eg.db,
                         keyType = 'ENSEMBL',
-                        ont = "ALL",
+                        ont = "BP",
                         pAdjustMethod = "BH",
                         pvalueCutoff = 0.05,
-                        qvalueCutoff = 0.05,
+                        qvalueCutoff = 0.1,
                         readable = TRUE)
     res <- as.data.frame(ego_ALL)
     return(res)
   }
   
-  qunplotValcano <- function(dat, tagItem){
+  qunplotValcano <- function(dat, tagItem, rangeNum){
     #dat <- na.omit(dat[,-7])
     ggplot(dat,aes(log2FoldChange,-log10(pvalue),color = sig))+ 
       geom_point()+
+      scale_x_continuous(limits = c(-rangeNum, rangeNum)) +
       scale_color_manual(values = c(down = "Dark Green", up = "Dark Red", none = "grey")) +
       labs(x= expression(Log[2]*" Fold Change"), y = expression(-Log[10]*" (pvalue)"), 
            title = paste(tagItem, "up: ", table(dat$sig)[3], "Down: ", table(dat$sig)[1], sep = " ")) +
