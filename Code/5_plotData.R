@@ -117,9 +117,9 @@
   data_DE_Mock_NT <- read.table("./Results/Table/DEG/DE_Data_Mock_NT.txt", header = T, sep = "\t", stringsAsFactors = F)
   # exclude sars genes
   data_DE_Mock_NT <- data_DE_Mock_NT[!data_DE_Mock_NT$Ensembl %in% sars_genes,]
-  p_valcano_Mock_NT <- qunplotValcano(dat = data_DE_Mock_NT, tagItem = "Mock VS NT", 8)
+  p_valcano_Mock_NT <- qunplotValcano(dat = data_DE_Mock_NT, tagItem = "Mock VS NT\n", 8)
   p_valcano_Mock_NT
-  ggsave(filename = "./Results/Figure/3_DE_Mock_NT_valcano.pdf", p_valcano_Mock_NT, width = 5.4, height = 4.7)
+  ggsave(filename = "./Results/Figure/3_DE_Mock_NT_valcano.pdf", p_valcano_Mock_NT, width = 3.9, height = 3.2)
   
   # DE NT and T
   data_DE_NT_T <- read.table("./Results/Table/DEG/DE_Data_NT_T.txt", header = T, sep = "\t", stringsAsFactors = F)
@@ -127,7 +127,7 @@
   data_DE_NT_T <- data_DE_NT_T[!data_DE_NT_T$Ensembl %in% sars_genes,]
   p_valcano_NT_T <- qunplotValcano(dat = data_DE_NT_T, tagItem = "NT VS T", 3)
   p_valcano_NT_T
-  ggsave(filename = "./Results/Figure/4_DE_NT_T_valcano.pdf", p_valcano_NT_T, width = 5.4, height = 4.7)
+  ggsave(filename = "./Results/Figure/4_DE_NT_T_valcano.pdf", p_valcano_NT_T, width = 3.9, height = 3.2)
 }
 
 # Expression Change
@@ -179,6 +179,10 @@
     }
   }
   
+  # out
+  write.table(exp_Mock_NT_up_scale, "./Results/Table/DEG/DE_Data_Mock_NT_up_scale.txt", sep = "\t", quote = F)
+  write.table(exp_Mock_NT_down_scale, "./Results/Table/DEG/DE_Data_Mock_NT_down_scale.txt", sep = "\t", quote = F)
+  
   # box plot
   exp_Mock_NT_up_scale_stack <- stack(exp_Mock_NT_up_scale[,1:3])
   exp_Mock_NT_down_scale_stack <- stack(exp_Mock_NT_down_scale[,1:3])
@@ -210,15 +214,3 @@
   p_box_3
   ggsave(filename = "./Results/Figure/5_expReverse.pdf", p_box_3, width = 5.6, height = 5.0)
 }
-
-# GO function analysis
-{
-  # Mock VS NT
-  # dysregulated genes with pvalue <= 0.01, abs(log2FC) > 1
-  
-  
-  # NT VS T
-  
-}
-
-

@@ -81,4 +81,11 @@
            title = paste(tagItem, "up: ", table(dat$sig)[3], "Down: ", table(dat$sig)[1], sep = " ")) +
       theme_classic()
   }
+  
+  qunplotGO <- function(dat){
+    ggplot(dat, aes(-log10(pvalue), reorder(Description, -log10(pvalue), decreasing = T))) +
+      geom_bar(stat = "identity") + 
+      xlab("-log10(pvalue)") + ylab("GO term") + 
+      theme_bw() + theme_classic()
+  }
 }
