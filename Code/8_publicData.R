@@ -1,0 +1,112 @@
+###
+# @Descripttion: show gene expression
+# @Author: LiQun
+# @Email: qun.li@ki.se
+# @Date: 30 Dec 2023 (14:27:27)
+### 
+
+# env setting
+{
+  # set working env
+  rm(list = ls())
+  # set your working path 
+  setwd("/Users/liqun/Desktop/Projects/Covid19/Data/Code/SARSCoV2/")
+  # check your working path
+  dirNow <- getwd()
+}
+
+# libraries
+{
+  library(pheatmap)
+  library(ggplot2)
+  source("./Code/basicFunction.R")
+}
+
+# load data
+{
+  # Ensembl-gene pair
+  Ensembl_gene <- read.table("./Data/SourceData/matchedID.txt", header = T, sep = "\t")
+  
+  # Expression
+  # exp this study
+  {
+    exp_total <- read.table("./Data/ExpRNAseq/exp_Data_merge.txt", header = T, sep = "\t")
+    exp_fpkm <- exp_total[,c(1,11:20)]
+    exp_fpkm_scale <- t(scale(t(exp_fpkm[,c(3:11)])))
+    exp_fpkm <- cbind(exp_fpkm[,c(1,2)], exp_fpkm_scale)
+    exp_fpkm$Mock_mean_scale <- apply(exp_fpkm[,3:5], 1, mean)
+    exp_fpkm$NT_mean_scale <- apply(exp_fpkm[,6:8], 1, mean)
+    exp_fpkm$T_mean_scale <- apply(exp_fpkm[,9:11], 1, mean)
+  }
+  
+  # exp public data
+  # RNAseq analysis of PBMCs in a group of 17 COVID-19 subjects and 17 healthy controls
+  {
+    exp_GSE152418 <- read.table("./Data/SourceData/HumanPublicCovid19/GSE152418_p20047_Study1_RawCounts.txt", header = T, sep = "\t")
+    colnames(exp_GSE152418)[1] <- "Ensembl"
+    exp_GSE152418 <- merge(exp_GSE152418, Ensembl_gene, by = "Ensembl")
+    exp_GSE152418 <- exp_GSE152418[!duplicated(exp_GSE152418$Gene),]
+    exp_GSE152418 <- exp_GSE152418[,c(1,36,2:35)]
+    colnames_exp_GSE152418 <- c("Ensembl", "Gene", paste("Case", 1:17, sep = "_"), paste("NC", 1:17, sep = "_"))
+    colnames(exp_GSE152418) <- colnames_exp_GSE152418
+    exp_GSE152418_scale <- t(scale(t(exp_GSE152418[,3:36])))
+    exp_GSE152418 <- cbind(exp_GSE152418[,1:2], exp_GSE152418_scale)
+    exp_GSE152418$Case_Mean_scale <- apply(exp_GSE152418[,c(3:19)],1,mean)
+    exp_GSE152418$NC_Mean_scale <- apply(exp_GSE152418[,c(20:36)],1,mean)
+    exp_GSE152418 <- na.omit(exp_GSE152418)
+  }
+  
+  # 126 samples were analyzed in total with 100 COVID-19 patients and 26 non-COVID-19
+  {
+    exp_GSE157103 <- read.table("./Data/SourceData/HumanPublicCovid19/GSE157103_genes.tpm.tsv", header = T, sep = "\t")
+    colnames(exp_GSE157103)[1] <- "Gene"
+    exp_GSE157103 <- merge(exp_GSE157103, Ensembl_gene, by = "Gene")
+    exp_GSE157103 <- exp_GSE157103[!duplicated(exp_GSE157103$Gene),]
+    exp_GSE157103 <- exp_GSE157103[,c(128, 1, 2:127)]
+    colnames_exp_GSE157103 <- c("Ensembl", "Gene", paste("Case", 1:100, sep = "_"), paste("NC", 1:26, sep = "_"))
+    colnames(exp_GSE157103) <- colnames_exp_GSE157103
+    exp_GSE157103_scale <- t(scale(t(exp_GSE157103[,3:128])))
+    exp_GSE157103 <- cbind(exp_GSE157103[,c(1,2)], exp_GSE157103_scale)
+    exp_GSE157103$Case_Mean_scale <- apply(exp_GSE157103[,c(3:102)], 1, mean)
+    exp_GSE157103$NC_Mean_scale <- apply(exp_GSE157103[,c(103:128)], 1, mean)
+    exp_GSE157103 <- na.omit(exp_GSE157103)
+  }
+  
+  # Bulk RNA-seq of choroid plexus organoids (CPOs) was performed on mock 72 hours post-infection (hpi), SARS-CoV-2 24 hpi, and SARS-CoV-2 72 hpi samples.
+  {
+    exp_GSE157852 <- read.table("./Data/SourceData/HumanPublicCovid19/GSE157852_CPO_RawCounts.txt", header = T, sep = "\t")
+    exp_GSE157852 <- merge(exp_GSE157852, Ensembl_gene, by = "Gene")
+    exp_GSE157852 <- exp_GSE157852[!duplicated(exp_GSE157852$Gene),]
+    exp_GSE157852 <- exp_GSE157852[,c(11,1,2:4,8:10)]
+    colnames_exp_GSE157852 <- c("Ensembl", "Gene", paste("NC", 1:3, sep = "_"), paste("Case", 1:3, sep = "_"))
+    colnames(exp_GSE157852) <- colnames_exp_GSE157852
+    exp_GSE157852_scale <- t(scale(t(exp_GSE157852[,c(3:8)])))
+    exp_GSE157852 <- cbind(exp_GSE157852[,c(1,2)], exp_GSE157852_scale)
+    exp_GSE157852$Case_Mean_scale <- apply(exp_GSE157852[,c(6:8)], 1, mean)
+    exp_GSE157852$NC_Mean_scale <- apply(exp_GSE157852[,c(3:5)], 1, mean)
+    exp_GSE157852 <- na.omit(exp_GSE157852)
+  }
+
+  # # Autopsy samples from patients deceased due to SARS-Cov2 infection were collected for total RNA-seq analysis to assess viral load and immune response.
+  # # lung/heart/liver/kidney/bowel/marrow
+  # exp_GSE150316 <- read.table("./Data/SourceData/HumanPublicCovid19/GSE150316_RawCounts_Final.txt", header = T, sep = "\t")
+  # exp_GSE150316 <- merge(exp_GSE150316, Ensembl_gene, by = "Gene")
+  # exp_GSE150316 <- exp_GSE150316[!duplicated(exp_GSE150316$Gene),]
+  
+  # GO Network
+  {
+    # mock nt
+    net_mock_nt_up_net  <- read.table("./Results/Table/Network/net_go_mock_NT_up_net.txt", header = T, sep = "\t")
+    net_mock_nt_up_node <- read.table("./Results/Table/Network/net_go_mock_NT_up_node.txt", header = T, sep = "\t")
+    
+    net_mock_nt_down_net  <- read.table("./Results/Table/Network/net_go_mock_NT_down_net.txt", header = T, sep = "\t")
+    net_mock_nt_down_node <- read.table("./Results/Table/Network/net_go_mock_NT_down_node.txt", header = T, sep = "\t")
+    
+    # nt t
+    net_nt_t_up_net  <- read.table("./Results/Table/Network/net_go_NT_T_up_net.txt", header = T, sep = "\t")
+    net_nt_t_up_node <- read.table("./Results/Table/Network/net_go_NT_T_up_node.txt", header = T, sep = "\t")
+    
+    net_nt_t_down_net  <- read.table("./Results/Table/Network/net_go_NT_T_down_net.txt", header = T, sep = "\t")
+    net_nt_t_down_node <- read.table("./Results/Table/Network/net_go_NT_T_down_node.txt", header = T, sep = "\t")
+  }
+}

@@ -1,0 +1,23 @@
+ID	Description	Type	pvalue	Count	geneID
+GO:0006334	nucleosome assembly	chromatin assembly	3.19E-09	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0031497	chromatin assembly	chromatin assembly	1.31E-08	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0034728	nucleosome organization	chromatin assembly	3.14E-08	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0006333	chromatin assembly or disassembly	chromatin assembly	5.45E-08	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0006323	DNA packaging	chromatin assembly	1.25E-07	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0065004	protein-DNA complex assembly	chromatin assembly	2.40E-07	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0000395	mRNA 5-splice site recognition	splicing	4.26E-07	4	RNVU1-15/RNVU1-4/RNVU1-2A/RNVU1-8
+GO:0071824	protein-DNA complex subunit organization	chromatin assembly	9.94E-07	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0006338	chromatin remodeling	chromatin assembly	1.45E-06	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0061844	antimicrobial humoral immune response mediated by antimicrobial peptide	antimicrobial humoral response	2.43E-06	4	CXCL2/CXCL1/H2BC21/H2BC7
+GO:0071103	DNA conformation change	chromatin assembly	4.05E-06	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0019730	antimicrobial humoral response	antimicrobial humoral response	8.03E-06	4	CXCL2/CXCL1/H2BC21/H2BC7
+GO:0045292	mRNA cis splicing, via spliceosome	splicing	9.11E-06	4	RNVU1-15/RNVU1-4/RNVU1-2A/RNVU1-8
+GO:0006376	mRNA splice site selection	splicing	1.45E-05	4	RNVU1-15/RNVU1-4/RNVU1-2A/RNVU1-8
+GO:0006325	chromatin organization	chromatin assembly	5.11E-05	8	H2BC21/H2BC13/H2AX/H2BU1/H3C12/H2BC18/H3C1/H2BC7
+GO:0000245	spliceosomal complex assembly	splicing	0.000121301	4	RNVU1-15/RNVU1-4/RNVU1-2A/RNVU1-8
+GO:0006959	humoral immune response	immune response	0.000215148	4	CXCL2/CXCL1/H2BC21/H2BC7
+GO:0099536	synaptic signaling	synaptic signaling	0.000883289	7	SYNGR1/PRR7/LY6E/RGS14/ADRB2/SEPTIN5/VAMP2
+GO:0007190	activation of adenylate cyclase activity	activation of adenylate cyclase activity	0.001047905	2	ADRB2/P2RY11
+GO:0022618	ribonucleoprotein complex assembly	splicing	0.001214957	5	RPL3L/RNVU1-15/RNVU1-4/RNVU1-2A/RNVU1-8
+GO:0002251	organ or tissue specific immune response	immune response	0.001235217	2	H2BC21/H2BC7
+GO:0002385	mucosal immune response	immune response	0.001235217	2	H2BC21/H2BC7

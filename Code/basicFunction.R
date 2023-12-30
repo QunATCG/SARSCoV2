@@ -67,7 +67,8 @@
                         pvalueCutoff = 0.05,
                         qvalueCutoff = 0.1,
                         readable = TRUE)
-    res <- as.data.frame(ego_ALL)
+    res1 <- as.data.frame(ego_ALL)
+    res <- list(ego = ego_ALL, result = res1)
     return(res)
   }
   
@@ -87,5 +88,29 @@
       geom_bar(stat = "identity") + 
       xlab("-log10(pvalue)") + ylab("GO term") + 
       theme_bw() + theme_classic()
+  }
+  
+  qunNetworkGeneration <- function(dat){
+    net_dataframe <- data.frame(matrix(nrow = cumsum(1:nrow(dat))[nrow(dat)], ncol = 3))
+    colnames(net_dataframe) <- c("GOID1", "GOID2", "CommonNum")
+    countN <- 0
+    for (i in 1:nrow(dat)){
+      nodei_ID <- dat[i,]$ID
+      nodei_Gene <- strsplit(dat[i,]$geneID, "/")[[1]]
+      for (j in i:nrow(dat)){
+        nodej_ID <- dat[j,]$ID
+        nodej_Gene <- strsplit(dat[j,]$geneID, "/")[[1]]
+        num_inter <- length(intersect(nodei_Gene, nodej_Gene))
+        countN <- countN + 1
+        net_dataframe[countN,1] <- nodei_ID
+        net_dataframe[countN,2] <- nodej_ID
+        net_dataframe[countN,3] <- num_inter
+      }
+    }
+    net_dataframe <- net_dataframe[net_dataframe[,1] != net_dataframe[,2],]
+    net_dataframe <- net_dataframe[net_dataframe[,3] != 0,]
+    node_dataframe <- dat[,c("ID", "Description","pvalue", "Count", "geneID")]
+    res <- list(net = net_dataframe, node = node_dataframe)
+    return(res)
   }
 }

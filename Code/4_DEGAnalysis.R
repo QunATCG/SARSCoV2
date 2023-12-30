@@ -162,12 +162,12 @@
   GO_NT_T_Down    <- qunGO(dat = DE_NT_T_result_exp, "down", "N")
   
   # Output
-  write.table(GO_Mock_NT_Up_strict,   "./Results/Table/GO/GO_Data_Mock_NT_Up_strict.txt", quote = F, sep = "\t", row.names = F)
-  write.table(GO_Mock_NT_Down_strict, "./Results/Table/GO/GO_Data_Mock_NT_Down_strict.txt", quote = F, sep = "\t", row.names = F)
+  write.table(GO_Mock_NT_Up_strict$result,   "./Results/Table/GO/GO_Data_Mock_NT_Up_strict.txt", quote = F, sep = "\t", row.names = F)
+  write.table(GO_Mock_NT_Down_strict$result, "./Results/Table/GO/GO_Data_Mock_NT_Down_strict.txt", quote = F, sep = "\t", row.names = F)
   
-  write.table(GO_Mock_NT_Up,   "./Results/Table/GO/GO_Data_Mock_NT_Up.txt", quote = F, sep = "\t", row.names = F)
-  write.table(GO_Mock_NT_Down, "./Results/Table/GO/GO_Data_Mock_NT_Down.txt", quote = F, sep = "\t", row.names = F)
+  write.table(GO_Mock_NT_Up$result,   "./Results/Table/GO/GO_Data_Mock_NT_Up.txt", quote = F, sep = "\t", row.names = F)
+  write.table(GO_Mock_NT_Down$result, "./Results/Table/GO/GO_Data_Mock_NT_Down.txt", quote = F, sep = "\t", row.names = F)
   
-  write.table(GO_NT_T_Up,      "./Results/Table/GO/GO_Data_NT_T_Up.txt", quote = F, sep = "\t", row.names = F)
-  write.table(GO_NT_T_Down,    "./Results/Table/GO/GO_Data_NT_T_Down.txt", quote = F, sep = "\t", row.names = F)
+  write.table(GO_NT_T_Up$result,      "./Results/Table/GO/GO_Data_NT_T_Up.txt", quote = F, sep = "\t", row.names = F)
+  write.table(GO_NT_T_Down$result,    "./Results/Table/GO/GO_Data_NT_T_Down.txt", quote = F, sep = "\t", row.names = F)
 }
