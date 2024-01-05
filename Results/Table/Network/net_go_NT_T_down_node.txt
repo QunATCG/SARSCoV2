@@ -1,6 +1,6 @@
 ID	Description	Type	pvalue	Count	geneID
-GO:0009615	response to virus	response to virus	8.04E-07	8	PLA2G10/IFIH1/IFIT3/IFIT2/TPT1/OASL/IL23R/IFIT1
-GO:0051607	defense response to virus	response to virus	1.16E-06	7	PLA2G10/IFIH1/IFIT3/IFIT2/OASL/IL23R/IFIT1
-GO:0140546	defense response to symbiont	response to virus	1.16E-06	7	PLA2G10/IFIH1/IFIT3/IFIT2/OASL/IL23R/IFIT1
-GO:0045071	negative regulation of viral genome replication	response to virus	0.000177249	3	IFIH1/OASL/IFIT1
-GO:0098542	defense response to other organism	response to virus	0.000201178	8	PLA2G10/IFIH1/IFIT3/IFIT2/OASL/IL23R/IFIT1/MRC1
+GO:0009615	response to virus	virus	8.04E-07	8	PLA2G10/IFIH1/IFIT3/IFIT2/TPT1/OASL/IL23R/IFIT1
+GO:0051607	defense response to virus	virus	1.16E-06	7	PLA2G10/IFIH1/IFIT3/IFIT2/OASL/IL23R/IFIT1
+GO:0140546	defense response to symbiont	virus	1.16E-06	7	PLA2G10/IFIH1/IFIT3/IFIT2/OASL/IL23R/IFIT1
+GO:0045071	negative regulation of viral genome replication	virus	0.000177249	3	IFIH1/OASL/IFIT1
+GO:0098542	defense response to other organism	virus	0.000201178	8	PLA2G10/IFIH1/IFIT3/IFIT2/OASL/IL23R/IFIT1/MRC1

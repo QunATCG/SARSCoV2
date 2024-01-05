@@ -92,6 +92,18 @@
   data_dds_DESeq_Mock_NT <- DESeq(data_dds_Mock_NT, fitType = "mean")
   DE_Mock_NT <- results(data_dds_DESeq_Mock_NT, contrast=c("treatment","Mock","NT"))
   
+  # DE of Mock and T (exclude covid read counts)
+  exp_data_readcounts_DE_Mock_T <- exp_data_readcounts[exp_data_readcounts$Variance != 0,][,c(1:3,7:9)]
+  
+  # DE
+  colData_Mock_T <- samples_info[c(1:3,7:9),]
+  colData_Mock_T$treatment <- factor(colData_Mock_T$treatment)
+  
+  data_dds_Mock_T <- DESeqDataSetFromMatrix(countData = exp_data_readcounts_DE_Mock_T, colData = colData_Mock_T, design= ~treatment)
+  data_dds_Mock_T <- data_dds_Mock_T[rowSums(counts(data_dds_Mock_T)) > 1,]
+  data_dds_DESeq_Mock_T <- DESeq(data_dds_Mock_T, fitType = "mean")
+  DE_Mock_T <- results(data_dds_DESeq_Mock_T, contrast=c("treatment","Mock","T"))
+  
   
   # DE of NT and T (include covid read counts)
   # load data
@@ -111,9 +123,11 @@
   
   # mark results
   DE_Mock_NT_result <- markResult(dat = data.frame(DE_Mock_NT), fc = 1.5, pthreshold = 0.05, tagItem = "controlVStreat")
+  DE_Mock_T_result <- markResult(dat = data.frame(DE_Mock_T), fc = 1.5, pthreshold = 0.05, tagItem = "controlVStreat")
   DE_NT_T_result    <- markResult(dat = data.frame(DE_NT_T),    fc = 1.5, pthreshold = 0.05, tagItem = "controlVStreat")
   
   DE_Mock_NT_result$Ensembl <- rownames(DE_Mock_NT_result)
+  DE_Mock_T_result$Ensembl <- rownames(DE_Mock_T_result)
   DE_NT_T_result$Ensembl <- rownames(DE_NT_T_result)
   
   exp_data_total$Ensembl <- rownames(exp_data_total)
@@ -125,26 +139,32 @@
 
   # merge exp files
   DE_Mock_NT_result_exp <- merge(DE_Mock_NT_result, exp_data_total, by = "Ensembl", all.x = T)
+  DE_Mock_T_result_exp <- merge(DE_Mock_T_result, exp_data_total, by = "Ensembl", all.x = T)
   DE_NT_T_result_exp <-    merge(DE_NT_T_result,    exp_data_total, by = "Ensembl", all.x = T)
 
   # exclude baseMean = 0
   DE_Mock_NT_result_exp <- DE_Mock_NT_result_exp[DE_Mock_NT_result_exp$baseMean != 0,]
+  DE_Mock_T_result_exp <- DE_Mock_T_result_exp[DE_Mock_T_result_exp$baseMean != 0,]
   DE_NT_T_result_exp    <- DE_NT_T_result_exp[DE_NT_T_result_exp$baseMean != 0,]
   
   # exclude readcounts <= 5
   DE_Mock_NT_result_exp <- keepOverReadCount(DE_Mock_NT_result_exp, 5)
+  DE_Mock_T_result_exp <- keepOverReadCount(DE_Mock_T_result_exp, 5)
   DE_NT_T_result_exp    <- keepOverReadCount(DE_NT_T_result_exp, 5)
   
   # exclude fpkm <= 1
   DE_Mock_NT_result_exp <- keepOverExp(DE_Mock_NT_result_exp, 1)
+  DE_Mock_T_result_exp <- keepOverExp(DE_Mock_T_result_exp, 1)
   DE_NT_T_result_exp <- keepOverExp(DE_NT_T_result_exp, 1)
   
   # reverse fc
   DE_Mock_NT_result_exp$log2FoldChange <- -DE_Mock_NT_result_exp$log2FoldChange
+  DE_Mock_T_result_exp$log2FoldChange <- -DE_Mock_T_result_exp$log2FoldChange
   DE_NT_T_result_exp$log2FoldChange <- -DE_NT_T_result_exp$log2FoldChange
   
   # Output
   write.table(DE_Mock_NT_result_exp, "./Results/Table/DEG/DE_Data_Mock_NT.txt", quote = F, sep = "\t", row.names = F)
+  write.table(DE_Mock_T_result_exp, "./Results/Table/DEG/DE_Data_Mock_T.txt", quote = F, sep = "\t", row.names = F)
   write.table(DE_NT_T_result_exp, "./Results/Table/DEG/DE_Data_NT_T.txt", quote = F, sep = "\t", row.names = F)
 }
 

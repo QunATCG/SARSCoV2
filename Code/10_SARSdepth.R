@@ -1,0 +1,100 @@
+###
+# @Descripttion: depth (coverage) of sars
+# @Author: LiQun
+# @Email: qun.li@ki.se
+# @Date: 5 Jan 2024 (09:16:06)
+### 
+
+# env setting
+{
+  # set working env
+  rm(list = ls())
+  # set your working path 
+  setwd("/Users/liqun/Desktop/Projects/Covid19/Data/Code/SARSCoV2/")
+  # check your working path
+  dirNow <- getwd()
+}
+
+# libraries
+{
+  library(pheatmap)
+  library(cowplot)
+  library(org.Hs.eg.db)
+  library(reshape2)
+  library(clusterProfiler)
+  library(ggplot2)
+  library(gplots)
+  library(ggrepel)
+  library(ggsci)
+  library(ggpubr)
+  source("./Code/basicFunction.R")
+}
+
+
+
+# load data
+{
+  
+  mock1 <- qunloadDepth("./Data/SourceData/depth/CK0816_S1.Coverage.bedgraph", colnamesTag = "Mock_1")
+  mock2 <- qunloadDepth("./Data/SourceData/depth/CK0817_S2.Coverage.bedgraph", colnamesTag = "Mock_2")
+  mock3 <- qunloadDepth("./Data/SourceData/depth/CK0818_S3.Coverage.bedgraph", colnamesTag = "Mock_3")
+
+  nt1 <- qunloadDepth("./Data/SourceData/depth/CK0819_S4.Coverage.bedgraph", colnamesTag = "NT_1")
+  nt2 <- qunloadDepth("./Data/SourceData/depth/CK0820_S5.Coverage.bedgraph", colnamesTag = "NT_2")
+  nt3 <- qunloadDepth("./Data/SourceData/depth/CK0821_S6.Coverage.bedgraph", colnamesTag = "NT_3")
+  
+  t1 <- qunloadDepth("./Data/SourceData/depth/CK0822_S7.Coverage.bedgraph", colnamesTag = "T_1")
+  t2 <- qunloadDepth("./Data/SourceData/depth/CK0823_S8.Coverage.bedgraph", colnamesTag = "T_2")
+  t3 <- qunloadDepth("./Data/SourceData/depth/CK0824_S9.Coverage.bedgraph", colnamesTag = "T_3")
+  
+  totalID <- data.frame(ID = nt1$ID, Num = 1:length(nt1$ID))
+  
+  # Mock
+  totalID_mock1 <- merge(totalID, mock1, by = "ID", all.x = T)
+  totalID_mock1_mock2 <- merge(totalID_mock1, mock2, by = "ID", all.x = T)
+  totalID_mock1_mock2_mock3 <- merge(totalID_mock1_mock2, mock3, by = "ID", all.x = T)
+  totalID_mock1_mock2_mock3[is.na(totalID_mock1_mock2_mock3)] <- 0
+  totalID_mock1_mock2_mock3$averageCoverage_Mock <- apply(totalID_mock1_mock2_mock3[,c("Coverage_Mock_1", "Coverage_Mock_2", "Coverage_Mock_3")], 1, mean)
+  depth_Mock <- totalID_mock1_mock2_mock3[,c("ID", "Num", "Coverage_Mock_1", "Coverage_Mock_2", "Coverage_Mock_3", "averageCoverage_Mock")]
+  
+  # NT
+  totalID_nt1 <- merge(totalID, nt1, by = "ID", all.x = T)
+  totalID_nt1_nt2 <- merge(totalID_nt1, nt2, by = "ID", all.x = T)
+  totalID_nt1_nt2_nt3 <- merge(totalID_nt1_nt2, nt3, by = "ID", all.x = T)
+  totalID_nt1_nt2_nt3[is.na(totalID_nt1_nt2_nt3)] <- 0
+  totalID_nt1_nt2_nt3$averageCoverage_NT <- apply(totalID_nt1_nt2_nt3[,c("Coverage_NT_1", "Coverage_NT_2", "Coverage_NT_3")], 1, mean)
+  depth_NT <- totalID_nt1_nt2_nt3[,c("ID", "Num", "Coverage_NT_1", "Coverage_NT_2", "Coverage_NT_3", "averageCoverage_NT")]
+  
+  # T
+  totalID_t1 <- merge(totalID, t1, by = "ID", all.x = T)
+  totalID_t1_t2 <- merge(totalID_t1, t2, by = "ID", all.x = T)
+  totalID_t1_t2_t3 <- merge(totalID_t1_t2, t3, by = "ID", all.x = T)
+  totalID_t1_t2_t3[is.na(totalID_t1_t2_t3)] <- 0
+  totalID_t1_t2_t3$averageCoverage_T <- apply(totalID_t1_t2_t3[,c("Coverage_T_1", "Coverage_T_2", "Coverage_T_3")], 1, mean)
+  depth_T <- totalID_t1_t2_t3[,c("ID", "Num", "Coverage_T_1", "Coverage_T_2", "Coverage_T_3", "averageCoverage_T")]
+  
+  # total
+  depth_Mock_NT <- merge(depth_Mock, depth_NT, by = "ID")
+  depth_Mock_NT_T <- merge(depth_Mock_NT, depth_T, by = "ID")
+  depth_Total <- depth_Mock_NT_T[,c("ID", "Num", "Coverage_Mock_1", "Coverage_Mock_2", "Coverage_Mock_3", "averageCoverage_Mock",
+                                    "Coverage_NT_1", "Coverage_NT_2", "Coverage_NT_3", "averageCoverage_NT",
+                                    "Coverage_T_1", "Coverage_T_2", "Coverage_T_3", "averageCoverage_T")]
+}
+
+# plot 
+{
+  depth_Total_plot <- depth_Total[,c("ID", "Num", "averageCoverage_Mock", "averageCoverage_NT", "averageCoverage_T")]
+  depth_Total_plot_melt <- melt(depth_Total_plot, var.id = "Num", measure.vars = c("averageCoverage_Mock", "averageCoverage_NT", "averageCoverage_T"))
+  
+  p_depth <- ggplot(data = depth_Total_plot_melt, mapping = aes(x = Num, y = value/10000, colour = variable)) + 
+    geom_line() + 
+    scale_color_manual(values = c("grey", "#4575b4", "#dfc27d")) +
+    scale_x_continuous(breaks = c(500, 1000, 1500, 2000, 2500, 3000), limits = c(0, 3000)) +
+    labs(y = "Average coverage \n (x 10^4)") + 
+    theme_classic() + theme(axis.title.x = element_blank())
+
+  ggsave("./Results/Figure/11_SARSDepth.pdf", p_depth, width = 12.9, height = 3.5)
+  
+  # SARS genome browser was from UCSC genome browser
+  # https://genome.ucsc.edu/cgi-bin/hgTracks?db=wuhCor1&position=lastDbPos
+}

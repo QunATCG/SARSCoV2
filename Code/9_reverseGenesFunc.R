@@ -1,0 +1,278 @@
+###
+# @Descripttion: expression reverse genes func
+# @Author: LiQun
+# @Email: qun.li@ki.se
+# @Date: 2 Jan 2024 (09:30:33)
+### 
+
+# env setting
+{
+  # set working env
+  rm(list = ls())
+  # set your working path 
+  setwd("/Users/liqun/Desktop/Projects/Covid19/Data/Code/SARSCoV2/")
+  # check your working path
+  dirNow <- getwd()
+}
+
+# libraries
+{
+  library(pheatmap)
+  library(cowplot)
+  library(org.Hs.eg.db)
+  library(reshape2)
+  library(clusterProfiler)
+  library(ggplot2)
+  library(gplots)
+  library(ggrepel)
+  library(ggsci)
+  library(ggpubr)
+  source("./Code/basicFunction.R")
+}
+
+# load data
+{
+  # Ensembl-gene pair
+  Ensembl_gene <- read.table("./Data/SourceData/matchedID.txt", header = T, sep = "\t")
+  
+  # Expression
+  # exp this study
+  {
+    exp_total <- read.table("./Data/ExpRNAseq/exp_Data_merge.txt", header = T, sep = "\t")
+    exp_fpkm <- exp_total[,c(1,11:20)]
+    exp_fpkm_scale <- t(scale(t(exp_fpkm[,c(3:11)])))
+    exp_fpkm <- cbind(exp_fpkm[,c(1,2)], exp_fpkm_scale)
+    exp_fpkm$Mock_mean_scale <- apply(exp_fpkm[,3:5], 1, mean)
+    exp_fpkm$NT_mean_scale <- apply(exp_fpkm[,6:8], 1, mean)
+    exp_fpkm$T_mean_scale <- apply(exp_fpkm[,9:11], 1, mean)
+  }
+  
+  # DEG table
+  {
+    deg_mock_nt_total <- read.table("./Results/Table/DEG/DE_Data_Mock_NT.txt", header = T, sep = "\t")
+    deg_mock_t_total <- read.table("./Results/Table/DEG/DE_Data_Mock_T.txt", header = T, sep = "\t")
+    deg_nt_t_total <- read.table("./Results/Table/DEG/DE_Data_NT_T.txt", header = T, sep = "\t")
+  } 
+    
+  # load public exp
+  {
+    exp_GSE150316 <- read.table("./Results/Table/PublicExp/exp_GSE150316_scale.txt", header = T, sep = "\t")
+    exp_GSE152418 <- read.table("./Results/Table/PublicExp/exp_GSE152418_scale.txt", header = T, sep = "\t")
+    exp_GSE157103 <- read.table("./Results/Table/PublicExp/exp_GSE157103_scale.txt", header = T, sep = "\t")
+  }
+    
+    # merge DEG tables
+    # deg_mock_nt <- deg_mock_nt_total[,c(1:9,19)]
+    # common_colnames <- colnames(deg_mock_nt)[2:10]
+    # colnames(deg_mock_nt) <- c("Ensembl", paste(common_colnames, "MockNT", sep = "_"))
+    # deg_mock_t <- deg_mock_t_total[,c(1:9,19)]
+    # colnames(deg_mock_t) <- c("Ensembl",  paste(common_colnames, "MockT", sep = "_"))
+    # deg_mock_nt_t <- merge(deg_mock_nt, deg_mock_t, by = "Ensembl")
+    # deg_nt_t <- deg_nt_t_total[,c(1:9,19)]
+    # colnames(deg_nt_t) <- c("Ensembl",  paste(common_colnames, "NTT", sep = "_"))
+    # deg_mock_nt_t_total <- merge(deg_mock_nt_t, deg_nt_t, by = "Ensembl")
+    
+    
+    
+    # ggplot(data = deg_mock_nt_t_total, mapping = aes(x = log2FoldChange_MockNT, y = log2FoldChange_MockT, color = sig_NTT)) +
+    #   geom_point() +
+    #   scale_color_manual(values = c(down = "black", none = "grey", up = "blue")) + 
+    #   scale_x_continuous(limits = c(-8, 8)) +
+    #   scale_y_continuous(limits = c(-8, 8)) +
+    #   #geom_hline(aes(yintercept = 0), linetype = "dashed") +
+    #   geom_hline(aes(yintercept = log(1.5)), linetype = "dashed") +
+    #   geom_hline(aes(yintercept = -log(1.5)), linetype = "dashed") +
+    #   #geom_vline(aes(xintercept = 0), linetype = "dashed") + 
+    #   geom_vline(aes(xintercept = log(1.5)), linetype = "dashed") + 
+    #   geom_vline(aes(xintercept = -log(1.5)), linetype = "dashed") + 
+    #   geom_text_repel(data = deg_mock_nt_t_total[deg_mock_nt_t_total$Gene_MockNT %in% genes_show_2,], aes(label = Gene_NTT), color = "red") +
+    #   theme_classic()
+  
+  
+  # reverse table
+  reverse_mock_nt_up <- read.table("./Results/Table/DEG/DE_Data_Mock_NT_up_scale.txt", header = T, sep = "\t")
+  reverse_mock_nt_up <- reverse_mock_nt_up[reverse_mock_nt_up$Check_Mock_NT_up == 1 & reverse_mock_nt_up$Checkreverse == 1, ]
+  
+  reverse_mock_nt_down <- read.table("./Results/Table/DEG/DE_Data_Mock_NT_down_scale.txt", header = T, sep = "\t")
+  reverse_mock_nt_down <- reverse_mock_nt_down[reverse_mock_nt_down$Check_Mock_NT_down == 1 & reverse_mock_nt_down$Checkreverse == 1, ]
+  
+  pheatmap(reverse_mock_nt_up[,1:3], show_rownames = FALSE)
+  pheatmap(reverse_mock_nt_down[,1:3], show_rownames = FALSE)
+  
+  
+  representative_genes_mock_nt_up <- rownames(reverse_mock_nt_up[reverse_mock_nt_up$Check_Mock_T_up == 0,])
+  representative_genes_mock_nt_down <- rownames(reverse_mock_nt_down[reverse_mock_nt_down$Check_Mock_T_down == 0,])
+  
+  representative_genes_mock_nt_up_exp <- exp_fpkm[exp_fpkm$Ensembl %in% representative_genes_mock_nt_up,]
+  representative_genes_mock_nt_down_exp <- exp_fpkm[exp_fpkm$Ensembl %in% representative_genes_mock_nt_down,]
+  
+  representative_genes_mock_nt_up_exp_plot <- representative_genes_mock_nt_up_exp[,c("Mock_1_fpkm", "Mock_2_fpkm", "Mock_3_fpkm", "NT_1_fpkm", 
+                                                                                     "NT_2_fpkm", "NT_3_fpkm", "T_1_fpkm", "T_2_fpkm", "T_3_fpkm")]
+  rownames(representative_genes_mock_nt_up_exp_plot) <- representative_genes_mock_nt_up_exp$Gene
+  pheatmap(representative_genes_mock_nt_up_exp_plot, cluster_cols = F, color = colorRampPalette(colors = c("#fff5f0","#fb6a4a","#67000d"))(100), 
+           cellwidth = 4, cellheight = 4)
+  
+  representative_genes_mock_nt_down_exp_plot <- representative_genes_mock_nt_down_exp[,c("Mock_1_fpkm", "Mock_2_fpkm", "Mock_3_fpkm", "NT_1_fpkm", 
+                                                                                         "NT_2_fpkm", "NT_3_fpkm", "T_1_fpkm", "T_2_fpkm", "T_3_fpkm")]
+  rownames(representative_genes_mock_nt_down_exp_plot) <- representative_genes_mock_nt_down_exp$Gene
+  pheatmap(representative_genes_mock_nt_down_exp_plot, cluster_cols = F, color = colorRampPalette(colors = c("#f7fcf5","#74c476","#00441b"))(100),
+           cellwidth = 4, cellheight = 1)
+  
+  
+  # representative_genes_mock_nt_up_go <- enrichGO(gene = representative_genes_mock_nt_up, 
+  #                                                OrgDb = org.Hs.eg.db,
+  #                                                keyType = 'ENSEMBL',
+  #                                                ont = "BP",
+  #                                                pAdjustMethod = "BH",
+  #                                                pvalueCutoff = 0.05,
+  #                                                qvalueCutoff = 0.1,
+  #                                                readable = TRUE)
+  # summary(representative_genes_mock_nt_up_go)
+  # 
+  # representative_genes_mock_nt_down_go <- enrichGO(gene = representative_genes_mock_nt_down, 
+  #                                                OrgDb = org.Hs.eg.db,
+  #                                                keyType = 'ENSEMBL',
+  #                                                ont = "BP",
+  #                                                pAdjustMethod = "BH",
+  #                                                pvalueCutoff = 0.05,
+  #                                                qvalueCutoff = 0.1,
+  #                                                readable = TRUE)
+  # 
+  # summary(representative_genes_mock_nt_down_go)
+}
+
+
+
+# plot
+{
+  # detection of chemical stimulus involved in sensory perception of smell- GO:0050911
+  genes_selected_0 <- c("OR1L4","OR5AU1","OR1L6","OR2AT4","OR10AD1","OR52W1","OR11H4","OR2B8P","OR1F2P","OR9A1P","OR9A4")
+  genes_selected_fpkm <- exp_total[exp_total$Gene %in% genes_selected_0,][,c(11:20)]
+  genes_selected_fpkm_melt <- melt(genes_selected_fpkm, var.id = Gene)
+
+  mock_num <- length(grep("^Mock", genes_selected_fpkm_melt$variable))
+  NT_num <- length(grep("^NT", genes_selected_fpkm_melt$variable))
+  T_num <- length(grep("^T", genes_selected_fpkm_melt$variable))
+  genes_selected_fpkm_melt$variable <- c(rep("Mock", mock_num), rep("NT", NT_num), rep("T", T_num))
+  genes_selected_fpkm_melt$Gene <- factor(x= genes_selected_fpkm_melt$Gene, levels = c("OR9A1P","OR9A4","OR2B8P", "OR11H4","OR52W1", "OR1L4", "OR1L6", "OR5AU1","OR2AT4","OR10AD1","OR1F2P"))
+  
+  pdf("./Results/Figure/9_Histogram_mock_nt_up_smellGenes.pdf", width = 10.5, height = 3.7)
+  ggplot(data = genes_selected_fpkm_melt, mapping = aes(x = Gene, y = value, fill = variable)) +
+    geom_bar(stat = "summary", position = position_dodge(0.7)) +
+    stat_summary(fun.data = "mean_sd", geom = "errorbar", colour = "black", width = 0.15, position = position_dodge(0.7)) +
+    scale_fill_manual(values = c("#252525","#bdbdbd", "#525252")) +
+    labs(x = "",y = "FPKM") +
+    theme_classic()
+  dev.off()
+
+  # response to virus
+  genes_selected_1 <- c("IFI6","RIGI","PLA2G10","IFIH1","IFIT3","IFIT2","OASL","IL23R","IFIT1", "MRC1")
+  genes_selected_1_1 <- c("TPT1")
+  genes_selected_fpkm <- exp_total[exp_total$Gene %in% genes_selected_1,][,c(11:20)]
+  genes_selected_fpkm <- exp_total[exp_total$Gene %in% genes_selected_1_1,][,c(11:20)]
+  genes_selected_fpkm_melt <- melt(genes_selected_fpkm, var.id = Gene)
+  
+  mock_num <- length(grep("^Mock", genes_selected_fpkm_melt$variable))
+  NT_num <- length(grep("^NT", genes_selected_fpkm_melt$variable))
+  T_num <- length(grep("^T", genes_selected_fpkm_melt$variable))
+  genes_selected_fpkm_melt$variable <- c(rep("Mock", mock_num), rep("NT", NT_num), rep("T", T_num))
+  genes_selected_fpkm_melt$Gene <- factor(x= genes_selected_fpkm_melt$Gene, levels = c("IFIT1","IFIT2", "IFIH1","IFIT3", "OASL", "RIGI", "IFI6", "IL23R","MRC1", "PLA2G10"))
+  
+  pdf("./Results/Figure/9_Histogram_nt_t_down_virusresponseGenes_1.pdf", width = 2.6, height = 3.7)
+  ggplot(data = genes_selected_fpkm_melt, mapping = aes(x = Gene, y = value, fill = variable)) +
+    geom_bar(stat = "summary", position = position_dodge(0.7)) +
+    stat_summary(fun.data = "mean_sd", geom = "errorbar", colour = "black", width = 0.15, position = position_dodge(0.7)) +
+    scale_fill_manual(values = c("#252525","#bdbdbd", "#525252")) +
+    labs(x = "",y = "FPKM") +
+    theme_classic()
+  dev.off()
+  
+  # inflammatory response
+  genes_selected_2 <- c("STAP1","PTGER3","IFI35","CXCL2","NLRC4","PTGS1","GGT1","NFKBIA","IL17F","HYAL1","SERPINC1",
+                        "TNFAIP3","TEK","THEMIS2","SYT11","HRH4","NT5E","MYLK3","MEP1B","GPR32","ECM1","DUSP10",
+                        "IL34","IL23R","CD200R1","PTX3","IL17RE","CXCL3","PTAFR","PTGER4","CSF1","LRRC19","CXCL17","LTA","GGT1")
+  
+  genes_selected_fpkm <- exp_fpkm[exp_fpkm$Gene %in% genes_selected_2,][,c(2,12:14)]
+  rownames(genes_selected_fpkm) <- genes_selected_fpkm$Gene
+  genes_selected_fpkm <- genes_selected_fpkm[,2:4]
+  pheatmap(genes_selected_fpkm, scale = "row")
+  
+  # positive regulation of immune response
+  genes_selected_3 <- c("CD74","BTN3A1","STAP1","IFI35","CEACAM1","NLRC4","TGFB2","LPXN","HPX","IL17F","PDE4D","HHLA2","COLEC11",
+                        "THEMIS2","VTCN1","GPR32","CD226","IL23R","ERMAP","C2","PTAFR","GPR151","C1S","PLA2G6","FYB2","KLRK1","LTA","RAET1E")
+  
+  genes_selected_fpkm <- exp_fpkm[exp_fpkm$Gene %in% genes_selected_3,][,c(2,12:14)]
+  rownames(genes_selected_fpkm) <- genes_selected_fpkm$Gene
+  genes_selected_fpkm <- genes_selected_fpkm[,2:4]
+  pheatmap(genes_selected_fpkm, scale = "row")
+  
+  # positive regulation of immune system process
+  genes_selected_4 <- c("CD74","BTN3A1","STAP1","IFI35","CEACAM1","NLRC4","TGFB2","LPXN","HPX","IL17F","PDE4D","HES1","HHLA2","COLEC11",
+                        "SOX4","THEMIS2","VTCN1","GPR32","DUSP10","CD226","JAM2","IL34","IL23R","ERMAP","C2","PTAFR","GPR151","JUN",
+                        "HCLS1","C1S","CSF1","PLA2G6","FYB2","CXCL17","HLA-DMA","KLRK1","LTA","RAET1E")
+  
+  genes_selected_fpkm <- exp_fpkm[exp_fpkm$Gene %in% genes_selected_4,][,c(2,12:14)]
+  rownames(genes_selected_fpkm) <- genes_selected_fpkm$Gene
+  genes_selected_fpkm <- genes_selected_fpkm[,2:4]
+  pheatmap(genes_selected_fpkm, scale = "row")
+  
+  # humoral immune response
+  genes_selected_5 <- c("CXCL2","HPX","IL17F","COLEC11","IFNA5","CXCL3","C2","WFDC12","C1S","PLA2G6","LTA","H2BC6")
+  genes_selected_fpkm <- exp_fpkm[exp_fpkm$Gene %in% genes_selected_5,][,c(2,12:14)]
+  rownames(genes_selected_fpkm) <- genes_selected_fpkm$Gene
+  genes_selected_fpkm <- genes_selected_fpkm[,2:4]
+  pheatmap(genes_selected_fpkm, scale = "row")
+  
+  # genes imm
+  genes_selected_imm <- Reduce(union, list(genes_selected_2, genes_selected_3, genes_selected_4, genes_selected_5))
+  genes_selected_fpkm <- exp_fpkm[exp_fpkm$Gene %in% genes_selected_imm,][,c(2,12:14)]
+  rownames(genes_selected_fpkm) <- genes_selected_fpkm$Gene
+  genes_selected_fpkm <- genes_selected_fpkm[,2:4]
+  colnames(genes_selected_fpkm) <- c("Mock", "NT", "T")
+  
+  p_pheatmap_immgenes_thisStudy <- pheatmap(genes_selected_fpkm, scale = "row", color = colorRampPalette(colors = c("#f0f0f0","#fff5f0","#67000d"))(100), 
+           cellwidth = 10, cellheight = 5, cluster_cols = FALSE, clustering_method = "centroid", fontsize = 5, show_rownames = TRUE)
+  
+  ggsave(filename = "Results/Figure/10_mock_nt_up_immgenes_pheatmap.pdf", p_pheatmap_immgenes, width = 4.18, height = 13.55) 
+  
+  genes_selected_GSE157103 <- exp_GSE157103[exp_GSE157103$Gene %in% genes_selected_imm,][,c("Gene", "NC_Mean_scale", "Case_Mean_scale")]
+  colnames(genes_selected_GSE157103) <- c("Gene", "NC3", "Case3")
+  
+  genes_selected_fpkm$Gene <- rownames(genes_selected_fpkm)
+  gene_fpkm_GSE157103 <- merge(genes_selected_fpkm, genes_selected_GSE157103, by = "Gene")
+  
+  
+  p_pheatmap_immgenes_thisStudy_GSE157103 <- pheatmap(gene_fpkm_GSE157103[,2:6], color = colorRampPalette(colors = c("#f0f0f0","#fff5f0","#67000d"))(100), 
+                                            cellwidth = 10, cellheight = 2, cluster_cols = FALSE, clustering_method = "average", fontsize = 5, show_rownames = FALSE)
+  
+  ggsave(filename = "Results/Figure/10_mock_nt_up_immgenes_thisStudy_GSE157103_pheatmap.pdf", p_pheatmap_immgenes_thisStudy_GSE157103, width = 6.09, height = 3.44) 
+  
+  
+  net_mock_nt_up_net  <- read.table("./Results/Table/Network/net_go_mock_NT_up_net.txt", header = T, sep = "\t")
+  net_mock_nt_up_node <- read.table("./Results/Table/Network/net_go_mock_NT_up_node.txt", header = T, sep = "\t")
+  p_mock_nt_up_immue <- qunplotmultiupbox(dat_net = net_mock_nt_up_node, exp1 = exp_fpkm, exp2 = exp_GSE152418, exp3 = exp_GSE157103, exp4 = exp_GSE150316, itemType = "immune")
+  p_mock_nt_up_immue$p_thisStudy
+  
+  p_box_imm <- plot_grid(p_mock_nt_up_immue$p_thisStudy, p_mock_nt_up_immue$p_GSE157103, ncol = 2)
+  ggsave(filename = "Results/Figure/10_mock_nt_up_immgenes_thisStudy_GSE157103_boxplot.pdf", p_box_imm, width = 6.09, height = 3.44) 
+  
+  targetGene <- "RIGI"
+  targetGene <- "IFI6"
+  targetGene <- "IL23R"
+  targetGene <- "TPT1"
+
+  p_1 <- qunplotboxgenes(targetGene, exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  p_1
+  
+  p_2 <- qunplotboxgenes(targetGene, exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "F")
+  p_2
+  
+  p_3 <- qunplotboxgenes(targetGene, exp_GSE152418, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "F")
+  p_3
+  
+  p_4 <- qunplotboxgenes(targetGene, exp_GSE157103, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "F")
+  p_4
+}
+
+
+
