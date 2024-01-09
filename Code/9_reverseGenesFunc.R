@@ -187,6 +187,13 @@
     theme_classic()
   dev.off()
   
+  # cytokines
+  
+  genes_seleted_cytokines_1 <- c("IL6", "TNF", "CCL7", "OSM", "TNFSF14", "GPLD1", "CLEC3B", "IFI44L", "OAS3")
+  genes_seleted_cytokines_2 <- c("PRTN3", "LCN2", "CD24", "BPI", "DEFA4", "MMP8", "MPO", "TLR2")
+  
+  
+  
   # inflammatory response
   genes_selected_2 <- c("STAP1","PTGER3","IFI35","CXCL2","NLRC4","PTGS1","GGT1","NFKBIA","IL17F","HYAL1","SERPINC1",
                         "TNFAIP3","TEK","THEMIS2","SYT11","HRH4","NT5E","MYLK3","MEP1B","GPR32","ECM1","DUSP10",
@@ -257,10 +264,13 @@
   ggsave(filename = "Results/Figure/10_mock_nt_up_immgenes_thisStudy_GSE157103_boxplot.pdf", p_box_imm, width = 6.09, height = 3.44) 
   
   targetGene <- "RIGI"
+  targetGene <- "IL6"
   targetGene <- "IFI6"
   targetGene <- "IL23R"
   targetGene <- "TPT1"
-
+  targetGene <- "VWF"
+  targetGene <- "CTSL"
+  
   p_1 <- qunplotboxgenes(targetGene, exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
   p_1
   
