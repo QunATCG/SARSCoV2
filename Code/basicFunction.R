@@ -136,13 +136,19 @@
       colnames(genes_select_exp) <- c("NC", "Case")
       genes_select_exp_stack <- stack(genes_select_exp)
     }
+    if (isThisStudy == "316"){
+      genes_select_exp <- dat_exp[dat_exp$Gene %in% genes_select,][,c("NC_Mean_scale", "Case_Mean_scale", "Case_Low_Mean_scale","Case_High_Mean_scale")]
+      colnames(genes_select_exp) <- c("NC", "Case", "Low", "High")
+      genes_select_exp_stack <- stack(genes_select_exp)
+    }
     # myComparision <- list(c("Mock_mean_scale", "NT_mean_scale"))
     ggplot(genes_select_exp_stack, aes(x=ind, y=values, fill = ind)) + 
-      geom_boxplot(outlier.shape = NA) + 
+      geom_boxplot() + 
       scale_fill_manual(values = myColors) +
       #stat_summary(fun.data = mean_sdl,fun.args = list(mult=1), geom = "errorbar", width = 0.2)+
       #stat_compare_means(comparisons = myComparision, method = "wilcox.test", label = "p.forma") +
-      labs(x = "",y = "Average Expression level (Z scaled)") +
+      labs(x = "",y = "") + 
+      #ylim(-2,2) +
       theme_classic() + theme(legend.position="none")
       #theme(axis.text.x = element_blank())
   }
@@ -171,14 +177,37 @@
       #print(gene_select_exp_stack)
       gene_select_exp_stack$ind <- factor(x = gene_select_exp_stack$ind, levels = c("NC", "Case"))
     }
+    if (isThisStudy == "316"){
+      tmp_colnames <- c("Ensembl", "Gene")
+      colnames_gene_select_exp <- colnames(dat_exp)[grep("Mean", colnames(dat_exp), invert = TRUE)]
+      colnames_gene_select_exp <- setdiff(colnames_gene_select_exp, tmp_colnames)
+      colnames_gene_select_exp_case <- colnames_gene_select_exp[grep("Case", colnames_gene_select_exp)]
+      colnames_gene_select_exp_case_high <- colnames_gene_select_exp[grep("High", colnames_gene_select_exp)]
+      colnames_gene_select_exp_case_low <- colnames_gene_select_exp[grep("Low", colnames_gene_select_exp)]
+      colnames_gene_select_exp_nc <- colnames_gene_select_exp[grep("NC", colnames_gene_select_exp)]
+      gene_select_exp <- dat_exp[dat_exp$Gene %in% gene,][,c(colnames_gene_select_exp_nc, colnames_gene_select_exp_case)]
+      gene_select_exp_hl <- dat_exp[dat_exp$Gene %in% gene,][,c(colnames_gene_select_exp_case_low, colnames_gene_select_exp_case_high)]
+      
+      colnames(gene_select_exp) <- c(rep("NC", length(colnames_gene_select_exp_nc)), rep("Case", length(colnames_gene_select_exp_case)))
+      gene_select_exp_stack_0 <- stack(gene_select_exp)
+      gene_select_exp_stack_0$ind <- c(rep("NC", length(colnames_gene_select_exp_nc)), rep("Case", length(colnames_gene_select_exp_case)))
+      gene_select_exp_stack_0$ind <- factor(x = gene_select_exp_stack_0$ind, levels = c("NC", "Case"))
+      
+      colnames(gene_select_exp_hl) <- c(rep("Low", length(colnames_gene_select_exp_case_low)), rep("High", length(colnames_gene_select_exp_case_high)))
+      gene_select_exp_stack_1 <- stack(gene_select_exp_hl)
+      gene_select_exp_stack_1$ind <- c(rep("Low", length(colnames_gene_select_exp_case_low)), rep("High", length(colnames_gene_select_exp_case_high)))
+      gene_select_exp_stack_1$ind <- factor(x = gene_select_exp_stack_1$ind, levels = c("Low", "High"))
+      gene_select_exp_stack <- rbind(gene_select_exp_stack_0, gene_select_exp_stack_1)
+    }
     # myComparision <- list(c("Mock_mean_scale", "NT_mean_scale"))
     ggplot(gene_select_exp_stack, aes(x=ind, y=values, fill = ind)) + 
-      geom_boxplot(outlier.shape = NA) + 
+      geom_boxplot() + 
       scale_fill_manual(values = myColors) +
       #stat_summary(fun.data = mean_sdl,fun.args = list(mult=1), geom = "errorbar", width = 0.2)+
       #stat_compare_means(comparisons = myComparision, method = "wilcox.test", label = "p.forma") +
-      labs(x = "",y = "Average Expression level (Z scaled)") +
-      theme_classic()
+      #labs(x = "",y = "Average Expression level (Z scaled)") +
+      xlab("") + ylab("") +
+      theme_classic() + theme(legend.position = "none")
   }
   
   qunplotmultiupbox <- function(dat_net, exp1, exp2, exp3, exp4, itemType){
@@ -235,5 +264,20 @@
     colnames(depth_data) <- c("Chr", "Star", "End", paste("Coverage", colnamesTag, sep = "_"))
     depth_data$ID <- paste(depth_data$Star, depth_data$End, sep = "_")
     return(depth_data)
+  }
+  
+  qunselectGenesBaseonGO <- function(dat_net, itemType){
+    dat_net_select <- dat_net[dat_net$Type == itemType,]$geneID
+    if (length(dat_net_select) == 1){
+      genes_select <- strsplit(dat_net_select[1], "/")[[1]]
+    }else{
+      genes_select_tmp <- strsplit(dat_net_select[1], "/")[[1]]
+      for (i in 2:length(dat_net_select)){
+        genes_select_i <- strsplit(dat_net_select[i], "/")[[1]]
+        genes_select_tmp <- union(genes_select_tmp, genes_select_i)
+      }
+      genes_select <- genes_select_tmp
+    }
+    return(genes_select)
   }
 }

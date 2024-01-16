@@ -91,6 +91,7 @@
   sars_rawcounts_percentage_data <- data.frame(sample = rep(c("Mock", "NT", "T"), each = 3), value = sars_rawcounts_percentage)
   sars_rawcounts_percentage_NT_mean <- mean(sars_rawcounts_percentage_data$value[4:6])
   sars_rawcounts_percentage_T_mean <- mean(sars_rawcounts_percentage_data$value[7:9])
+  sars_rawcounts_percentage_T_mean - sars_rawcounts_percentage_NT_mean
   pvalue_NT_T <- t.test(sars_rawcounts_percentage_data$value[4:6], sars_rawcounts_percentage_data$value[7:9])$p.value
   myComparision1 <- list(c("NT","T"))
   

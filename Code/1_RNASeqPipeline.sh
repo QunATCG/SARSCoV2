@@ -51,17 +51,30 @@ STRINGTIEOUTDIR=path_stringtie
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
-### 0. Remove rRNA
+### 0. Trim and QC
+#### software: trim_galore
+#### https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
+#### https://github.com/MultiQC/MultiQC
+trim_galore -q 30 -stringency 3 -length 20 --phred33 -fastqc \
+	-clip_R1 3 -clip_R2 3 -e 0.1 -dont_gzip \
+	-paired ${FQ1} ${FQ2} \
+	--output_dir $TRIM_DIR
+
+multiqc $TRIM_DIR
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+### 1. Remove rRNA
 #### Hisat2
 #### https://daehwankimlab.github.io/hisat2/manual/
 #### 0.1 download human rRNA sequence from NCBI. Also, we provide human rRNA fasta in this repository
 #### 0.2 build rRNA sequence index (Human_rRNA_Index) using hisat2
 #### 0.3 exclude rRNA sequence
-hisat2 -p $THREADS -x $rRNAINDEX -1 $FQ1 -2 $FQ2 --un-conc-gz ${SAMPLE}.rRNA.dep.fastq.gz
+hisat2 -p $THREADS -x $rRNAINDEX -1 $FQ1_trimed -2 $FQ2_trimed --un-conc-gz ${SAMPLE}.rRNA.dep.fastq.gz
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
-### 1. Remove SARS2 reads
+### 2. Remove SARS2 reads
 #### Hisat2
 #### https://daehwankimlab.github.io/hisat2/manual/
 #### 1.1 download SARS2 sequence from Ensembl. Also, we provide SARS fasta in this repository
@@ -69,20 +82,6 @@ hisat2 -p $THREADS -x $rRNAINDEX -1 $FQ1 -2 $FQ2 --un-conc-gz ${SAMPLE}.rRNA.dep
 #### 1.3 exclude SARS2 sequence
 hisat2 -p $THREADS -x $SARS2INDEX -1 ${SAMPLE}.rRNA.dep.fastq.1.gz -2 ${SAMPLE}.rRNA.dep.fastq.2.gz \
 	--un-conc-gz ${SAMPLE}.rRNA.sars.dep.fastq.gz
-#--------------------------------------------------------------------------------
-
-
-#--------------------------------------------------------------------------------
-### 2. Trim and QC
-#### software: trim_galore
-#### https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
-#### https://github.com/MultiQC/MultiQC
-trim_galore -q 30 -stringency 3 -length 20 --phred33 -fastqc \
-	-clip_R1 3 -clip_R2 3 -e 0.1 -dont_gzip \
-	-paired ${SAMPLE}.rRNA.sars.dep.fastq.1.gz ${SAMPLE}.rRNA.sars.dep.fastq.2.gz \
-	--output_dir $TRIM_DIR
-
-multiqc $TRIM_DIR
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------

@@ -27,6 +27,7 @@
   library(ggrepel)
   library(ggsci)
   library(ggpubr)
+  library(UpSetR)
   source("./Code/basicFunction.R")
 }
 
@@ -60,87 +61,133 @@
     exp_GSE152418 <- read.table("./Results/Table/PublicExp/exp_GSE152418_scale.txt", header = T, sep = "\t")
     exp_GSE157103 <- read.table("./Results/Table/PublicExp/exp_GSE157103_scale.txt", header = T, sep = "\t")
   }
-    
-    # merge DEG tables
-    # deg_mock_nt <- deg_mock_nt_total[,c(1:9,19)]
-    # common_colnames <- colnames(deg_mock_nt)[2:10]
-    # colnames(deg_mock_nt) <- c("Ensembl", paste(common_colnames, "MockNT", sep = "_"))
-    # deg_mock_t <- deg_mock_t_total[,c(1:9,19)]
-    # colnames(deg_mock_t) <- c("Ensembl",  paste(common_colnames, "MockT", sep = "_"))
-    # deg_mock_nt_t <- merge(deg_mock_nt, deg_mock_t, by = "Ensembl")
-    # deg_nt_t <- deg_nt_t_total[,c(1:9,19)]
-    # colnames(deg_nt_t) <- c("Ensembl",  paste(common_colnames, "NTT", sep = "_"))
-    # deg_mock_nt_t_total <- merge(deg_mock_nt_t, deg_nt_t, by = "Ensembl")
-    
-    
-    
-    # ggplot(data = deg_mock_nt_t_total, mapping = aes(x = log2FoldChange_MockNT, y = log2FoldChange_MockT, color = sig_NTT)) +
-    #   geom_point() +
-    #   scale_color_manual(values = c(down = "black", none = "grey", up = "blue")) + 
-    #   scale_x_continuous(limits = c(-8, 8)) +
-    #   scale_y_continuous(limits = c(-8, 8)) +
-    #   #geom_hline(aes(yintercept = 0), linetype = "dashed") +
-    #   geom_hline(aes(yintercept = log(1.5)), linetype = "dashed") +
-    #   geom_hline(aes(yintercept = -log(1.5)), linetype = "dashed") +
-    #   #geom_vline(aes(xintercept = 0), linetype = "dashed") + 
-    #   geom_vline(aes(xintercept = log(1.5)), linetype = "dashed") + 
-    #   geom_vline(aes(xintercept = -log(1.5)), linetype = "dashed") + 
-    #   geom_text_repel(data = deg_mock_nt_t_total[deg_mock_nt_t_total$Gene_MockNT %in% genes_show_2,], aes(label = Gene_NTT), color = "red") +
-    #   theme_classic()
-  
-  
-  # reverse table
-  reverse_mock_nt_up <- read.table("./Results/Table/DEG/DE_Data_Mock_NT_up_scale.txt", header = T, sep = "\t")
-  reverse_mock_nt_up <- reverse_mock_nt_up[reverse_mock_nt_up$Check_Mock_NT_up == 1 & reverse_mock_nt_up$Checkreverse == 1, ]
-  
-  reverse_mock_nt_down <- read.table("./Results/Table/DEG/DE_Data_Mock_NT_down_scale.txt", header = T, sep = "\t")
-  reverse_mock_nt_down <- reverse_mock_nt_down[reverse_mock_nt_down$Check_Mock_NT_down == 1 & reverse_mock_nt_down$Checkreverse == 1, ]
-  
-  pheatmap(reverse_mock_nt_up[,1:3], show_rownames = FALSE)
-  pheatmap(reverse_mock_nt_down[,1:3], show_rownames = FALSE)
-  
-  
-  representative_genes_mock_nt_up <- rownames(reverse_mock_nt_up[reverse_mock_nt_up$Check_Mock_T_up == 0,])
-  representative_genes_mock_nt_down <- rownames(reverse_mock_nt_down[reverse_mock_nt_down$Check_Mock_T_down == 0,])
-  
-  representative_genes_mock_nt_up_exp <- exp_fpkm[exp_fpkm$Ensembl %in% representative_genes_mock_nt_up,]
-  representative_genes_mock_nt_down_exp <- exp_fpkm[exp_fpkm$Ensembl %in% representative_genes_mock_nt_down,]
-  
-  representative_genes_mock_nt_up_exp_plot <- representative_genes_mock_nt_up_exp[,c("Mock_1_fpkm", "Mock_2_fpkm", "Mock_3_fpkm", "NT_1_fpkm", 
-                                                                                     "NT_2_fpkm", "NT_3_fpkm", "T_1_fpkm", "T_2_fpkm", "T_3_fpkm")]
-  rownames(representative_genes_mock_nt_up_exp_plot) <- representative_genes_mock_nt_up_exp$Gene
-  pheatmap(representative_genes_mock_nt_up_exp_plot, cluster_cols = F, color = colorRampPalette(colors = c("#fff5f0","#fb6a4a","#67000d"))(100), 
-           cellwidth = 4, cellheight = 4)
-  
-  representative_genes_mock_nt_down_exp_plot <- representative_genes_mock_nt_down_exp[,c("Mock_1_fpkm", "Mock_2_fpkm", "Mock_3_fpkm", "NT_1_fpkm", 
-                                                                                         "NT_2_fpkm", "NT_3_fpkm", "T_1_fpkm", "T_2_fpkm", "T_3_fpkm")]
-  rownames(representative_genes_mock_nt_down_exp_plot) <- representative_genes_mock_nt_down_exp$Gene
-  pheatmap(representative_genes_mock_nt_down_exp_plot, cluster_cols = F, color = colorRampPalette(colors = c("#f7fcf5","#74c476","#00441b"))(100),
-           cellwidth = 4, cellheight = 1)
-  
-  
-  # representative_genes_mock_nt_up_go <- enrichGO(gene = representative_genes_mock_nt_up, 
-  #                                                OrgDb = org.Hs.eg.db,
-  #                                                keyType = 'ENSEMBL',
-  #                                                ont = "BP",
-  #                                                pAdjustMethod = "BH",
-  #                                                pvalueCutoff = 0.05,
-  #                                                qvalueCutoff = 0.1,
-  #                                                readable = TRUE)
-  # summary(representative_genes_mock_nt_up_go)
-  # 
-  # representative_genes_mock_nt_down_go <- enrichGO(gene = representative_genes_mock_nt_down, 
-  #                                                OrgDb = org.Hs.eg.db,
-  #                                                keyType = 'ENSEMBL',
-  #                                                ont = "BP",
-  #                                                pAdjustMethod = "BH",
-  #                                                pvalueCutoff = 0.05,
-  #                                                qvalueCutoff = 0.1,
-  #                                                readable = TRUE)
-  # 
-  # summary(representative_genes_mock_nt_down_go)
 }
 
+# reverse genes
+{
+  # creat reverse genes expression table
+  NT_Mock_up_genes <- deg_mock_nt_total[deg_mock_nt_total$sig == "up",]$Ensembl
+  NT_Mock_down_genes <- deg_mock_nt_total[deg_mock_nt_total$sig == "down",]$Ensembl
+  NT_Mock_none_genes <- deg_mock_nt_total[deg_mock_nt_total$sig == "none",]$Ensembl
+  
+  T_Mock_up_genes <- deg_mock_t_total[deg_mock_t_total$sig == "up",]$Ensembl
+  T_Mock_down_genes <- deg_mock_t_total[deg_mock_t_total$sig == "down",]$Ensembl
+  T_Mock_none_genes <- deg_mock_t_total[deg_mock_t_total$sig == "none",]$Ensembl
+  
+  total_genes <- Reduce(union, list(NT_Mock_up_genes, NT_Mock_down_genes, T_Mock_up_genes, T_Mock_down_genes))
+  both_up_genes <- intersect(NT_Mock_up_genes, T_Mock_up_genes)
+  both_down_genes <- intersect(NT_Mock_down_genes, T_Mock_down_genes)
+  
+  total_genes_exp <- exp_fpkm[exp_fpkm$Ensembl %in% total_genes,]
+  both_up_genes_exp <- exp_fpkm[exp_fpkm$Ensembl %in% both_up_genes,]
+  both_down_genes_exp <- exp_fpkm[exp_fpkm$Ensembl %in% both_down_genes,]
+  
+  both_up_genes_ToverNT <- both_up_genes_exp[both_up_genes_exp$T_mean_scale >= both_up_genes_exp$NT_mean_scale, ]
+  both_up_genes_TlessNT <- both_up_genes_exp[both_up_genes_exp$T_mean_scale < both_up_genes_exp$NT_mean_scale, ]
+  
+  both_down_genes_ToverNT <- both_down_genes_exp[both_down_genes_exp$T_mean_scale >= both_down_genes_exp$NT_mean_scale, ]
+  both_down_genes_TlessNT <- both_down_genes_exp[both_down_genes_exp$T_mean_scale < both_down_genes_exp$NT_mean_scale, ]
+  
+  NT_unique_up_genes <- setdiff(NT_Mock_up_genes, T_Mock_up_genes)
+  NT_unique_down_genes <- setdiff(NT_Mock_down_genes, T_Mock_down_genes)
+  T_unique_up_genes <- setdiff(T_Mock_up_genes, NT_Mock_up_genes)
+  T_unique_down_genes <- setdiff(T_Mock_down_genes, NT_Mock_down_genes)
+  
+  # output genes for DAVID
+  
+  markGene1 <- data.frame(Ensembl = union(both_up_genes_TlessNT$Ensembl, intersect(NT_Mock_up_genes, T_Mock_none_genes)))
+  markGene1EG <- merge(markGene1, Ensembl_gene, by = "Ensembl")
+  write.table(markGene1EG, "./Results/Table/DEG/DEG_both_up_genes_TlessNT.txt", row.names = F, quote = F, sep = "\t")
+  
+  markGene2 <- data.frame(Ensembl = union(both_down_genes_ToverNT$Ensembl, intersect(NT_Mock_down_genes, T_Mock_none_genes)))
+  markGene2EG <- merge(markGene, Ensembl_gene, by = "Ensembl")
+  
+  write.table(markGeneEG, "./Results/Table/DEG/DEG_both_down_genes_ToverNT.txt", row.names = F, quote = F, sep = "\t")
+  
+  # GO analysis
+  GO_NT_unique_up_genes <- as.data.frame(enrichGO(gene = NT_unique_up_genes, OrgDb = org.Hs.eg.db,
+                                   keyType = 'ENSEMBL', ont = "BP", pAdjustMethod = "BH",
+                                   pvalueCutoff = 0.05, qvalueCutoff = 0.1, readable = TRUE))
+  GO_NT_unique_down_genes <- as.data.frame(enrichGO(gene = NT_unique_down_genes, OrgDb = org.Hs.eg.db,
+                                                  keyType = 'ENSEMBL', ont = "BP", pAdjustMethod = "BH",
+                                                  pvalueCutoff = 0.05, qvalueCutoff = 0.1, readable = TRUE))
+  
+  GO_T_unique_up_genes <- as.data.frame(enrichGO(gene = T_unique_up_genes, OrgDb = org.Hs.eg.db,
+                                                  keyType = 'ENSEMBL', ont = "BP", pAdjustMethod = "BH",
+                                                  pvalueCutoff = 0.05, qvalueCutoff = 0.1, readable = TRUE))
+  GO_T_unique_down_genes <- as.data.frame(enrichGO(gene = T_unique_down_genes, OrgDb = org.Hs.eg.db,
+                                                    keyType = 'ENSEMBL', ont = "BP", pAdjustMethod = "BH",
+                                                    pvalueCutoff = 0.05, qvalueCutoff = 0.1, readable = TRUE))
+  
+  go_gene_1 <- markGene1EG[grep("^ENSG", markGene1EG$Gene, invert = T),]$Ensembl
+  GO_both_up_genes_TlessNT <- as.data.frame(enrichGO(gene = go_gene_1, OrgDb = org.Hs.eg.db,
+                                                     keyType = 'ENSEMBL', ont = "BP", pAdjustMethod = "BH",
+                                                     pvalueCutoff = 0.05, qvalueCutoff = 0.1, readable = TRUE))
+  
+  go_gene_2 <- markGene2EG[grep("^ENSG", markGene2EG$Gene, invert = T),]$Ensembl
+  GO_both_down_genes_ToverNT <- as.data.frame(enrichGO(gene = go_gene_2, OrgDb = org.Hs.eg.db,
+                                                       keyType = 'ENSEMBL', ont = "BP", pAdjustMethod = "BH",
+                                                       pvalueCutoff = 0.05, qvalueCutoff = 0.1, readable = TRUE))
+  
+  # creat upset input table
+  upset_table_genes <- total_genes_exp[,c("Ensembl", "Gene", "Mock_mean_scale", "NT_mean_scale", "T_mean_scale")]
+  upset_table_genes$NT_Mock_up <- 0
+  upset_table_genes$NT_Mock_down <- 0
+  upset_table_genes$T_Mock_up <- 0
+  upset_table_genes$T_Mock_down <- 0
+  for (i in 1:nrow(upset_table_genes)){
+    if (upset_table_genes[i,]$Ensembl %in% NT_Mock_up_genes){
+      upset_table_genes[i,]$NT_Mock_up <- 1
+    }
+    
+    if (upset_table_genes[i,]$Ensembl %in% NT_Mock_down_genes){
+      upset_table_genes[i,]$NT_Mock_down <- 1
+    }
+    
+    if (upset_table_genes[i,]$Ensembl %in% T_Mock_up_genes){
+      upset_table_genes[i,]$T_Mock_up <- 1
+    }
+    
+    if (upset_table_genes[i,]$Ensembl %in% T_Mock_down_genes){
+      upset_table_genes[i,]$T_Mock_down <- 1
+    }
+  }
+  
+  # def function for upset
+  selectReverseGene <- function(row, geneList){
+    data <- (row["Ensembl"] %in% geneList)
+  }
+  
+  pdf("./Results/Figure/12_genesUpset.pdf", width = 6.4, height = 4.6)
+  upset(upset_table_genes, nsets = 4, order.by = "freq", set_size.show = FALSE,
+        main.bar.color = "grey", matrix.color = "black", sets.bar.color = "grey22",
+        sets = c("NT_Mock_up", "NT_Mock_down", "T_Mock_up", "T_Mock_down"),
+        queries = list(
+          list(
+            query = selectReverseGene,
+            params = list(both_up_genes_TlessNT$Ensembl),
+            color = "black",
+            active = T
+          ),
+          list(
+           query = selectReverseGene,
+           params = list(both_down_genes_ToverNT$Ensembl),
+           color = "black",
+           active = T
+          ),
+          list(
+          query = intersects, 
+          params = list("NT_Mock_up", "T_Mock_up"), 
+          color = "Dark Red", active = F
+            ),
+          list(
+            query = intersects, 
+            params = list("NT_Mock_down", "T_Mock_down"), 
+            color = "Dark Green", active = F
+          ))
+        )
+  dev.off()
+}
 
 
 # plot
@@ -187,10 +234,13 @@
     theme_classic()
   dev.off()
   
-  # cytokines
   
+  
+  
+  # cytokines
   genes_seleted_cytokines_1 <- c("IL6", "TNF", "CCL7", "OSM", "TNFSF14", "GPLD1", "CLEC3B", "IFI44L", "OAS3")
   genes_seleted_cytokines_2 <- c("PRTN3", "LCN2", "CD24", "BPI", "DEFA4", "MMP8", "MPO", "TLR2")
+  genes_seleted_cytokines_3 <- c("CISH", "TNFSF14", "OAS1", "GIMAP7", "GIMAP5", "TNFSF10", "DUSP2", "CXCR4", "RGS1", "TNFAIP3", "DUSP5", "AREG")
   
   
   
@@ -263,25 +313,62 @@
   p_box_imm <- plot_grid(p_mock_nt_up_immue$p_thisStudy, p_mock_nt_up_immue$p_GSE157103, ncol = 2)
   ggsave(filename = "Results/Figure/10_mock_nt_up_immgenes_thisStudy_GSE157103_boxplot.pdf", p_box_imm, width = 6.09, height = 3.44) 
   
-  targetGene <- "RIGI"
-  targetGene <- "IL6"
-  targetGene <- "IFI6"
-  targetGene <- "IL23R"
-  targetGene <- "TPT1"
-  targetGene <- "VWF"
-  targetGene <- "CTSL"
-  
+  targetGene <- "IFIT3"
   p_1 <- qunplotboxgenes(targetGene, exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
   p_1
   
-  p_2 <- qunplotboxgenes(targetGene, exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "F")
+  p_2 <- qunplotboxgenes(targetGene, exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "#fcbba1", "#fc9272"), isThisStudy = "316")
   p_2
+  
+  plot_grid(p_1, p_2, ncol = 2)
   
   p_3 <- qunplotboxgenes(targetGene, exp_GSE152418, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "F")
   p_3
   
   p_4 <- qunplotboxgenes(targetGene, exp_GSE157103, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "F")
   p_4
+
+  # "BCL2A1" "CSF2" "EPSTI1" "MMP13" "CXCL6" "OAS2" "CXCL1" "CXCL2", "CXCL3", "IFI6", "IFI27" and "TNF"
+  # (Gene expression profiling of SARS-CoV-2 infections reveal distinct primary lung cell and systemic immune infection responses that identify pathways relevant in COVID-19 disease)
+  p_CCR_TNF <- qunplotboxgenes("TNF", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  
+  # "CCL2" "CCL3" "CCL5" "CXCL8" "CXCL10"
+  # (Chemokines and chemokine receptors during COVID-19 infection)
+  p_CCR_CCR2 <- qunplotboxgenes("CCR2", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  p_CCR_CCR5 <- qunplotboxgenes("CCR5", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  
+  p_CCR_CCL2 <- qunplotboxgenes("CCL2", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  p_CCR_CCL3 <- qunplotboxgenes("CCL3", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  
+  p_CCR <- plot_grid(p_CCR_CCR2, p_CCR_CCR5, p_CCR_CCL2, p_CCR_CCL3, ncol = 4)
+  ggsave(filename = "./Results/Figure/14_p_plotbox_CCR.pdf", p_CCR, width = 10, height = 3)
+  
+  # Cytokine pathway differences between low and high viral cases
+  # Temporal and spatial heterogeneity of host response to SARS-CoV-2 pulmonary infection
+  # JAK/STAT pathway
+  p_1_JAK2 <- qunplotboxgenes("JAK2", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  p_2_JAK2 <- qunplotboxgenes("JAK2", exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "#fcbba1", "#fc9272"), isThisStudy = "316")
+  
+  p_1_STAT1 <- qunplotboxgenes("STAT1", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  p_2_STAT1 <- qunplotboxgenes("STAT1", exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "#fcbba1", "#fc9272"), isThisStudy = "316")
+  
+  #p_1_STAT2 <- qunplotboxgenes("STAT2", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  #p_2_STAT2 <- qunplotboxgenes("STAT2", exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "#fcbba1", "#fc9272"), isThisStudy = "316")
+  #plot_grid(p_1_STAT2, p_2_STAT2)
+  
+  p_1_IL22RA2 <- qunplotboxgenes("IL22RA2", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  p_2_IL22RA2 <- qunplotboxgenes("IL22RA2", exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "#fcbba1", "#fc9272"), isThisStudy = "316")
+  plot_grid(p_1_IL22RA2, p_2_IL22RA2)
+  
+  p_1_CXCR6 <- qunplotboxgenes("CXCR6", exp_fpkm, myComparision = list(c("Mock", "NT"),c("Mock","T"), c("NT", "T")),myColors = c("grey", "Dark Red", "Brown"), isThisStudy = "T")
+  p_2_CXCR6 <- qunplotboxgenes("CXCR6", exp_GSE150316, myComparision = list(c("NC", "Case")),myColors = c("grey", "Dark Red", "#fcbba1", "#fc9272"), isThisStudy = "316")
+  plot_grid(p_1_test, p_2_test)
+  
+  p_CP <- plot_grid(p_1_JAK2, p_2_JAK2, p_1_STAT1, p_2_STAT1,
+            p_1_IL22RA2, p_2_IL22RA2, p_1_CXCR6, p_2_CXCR6,
+            ncol = 4)
+  
+  ggsave(filename = "./Results/Figure/15_p_plotbox_CP.pdf", p_CP, width = 10, height = 6)
 }
 
 
