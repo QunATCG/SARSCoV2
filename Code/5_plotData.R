@@ -72,16 +72,6 @@
   #dev.off()
 }
 
-# Correlation
-{
-  data_cor <- read.table("./Results/Table/Similarity/exp_Data_readcount_cor.txt", header = T, row.names = 1, sep = "\t")
-  p_pheatmap <- pheatmap(data_cor, treeheight_col = 10, treeheight_row = 10, cellwidth = 10, cellheight = 10)
-  p_pheatmap
-  #pdf("./Results/Figure/1_Correlation.pdf", width = 7.0, height = 5.36)
-  ggsave(filename = "./Results/Figure/1_Correlation.pdf", p_pheatmap, width = 4.0, height = 3.0)
-  #dev.off()
-}
-
 # percentage of SARS readcounts
 {
   data_rawcounts_total_sars <- read.table("./Data/ExpRNAseq/Human_Covid19_removerRNA.gene.readCounts", header = T, sep = "\t", row.names = 1)

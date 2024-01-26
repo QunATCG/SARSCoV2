@@ -64,11 +64,6 @@
   # Check PCA plot
   plot(data_readcount_PCA_output[,1], data_readcount_PCA_output[,2])
   write.table(data_readcount_PCA_output, "./Results/Table/Similarity/exp_Data_readcount_PCA.txt", quote = F, sep = "\t", row.names = T)
-
-  # correlation
-  exp_data_readcounts_cor <- cor(exp_data_readcounts_PCA[,1:9])
-  pheatmap(exp_data_readcounts_cor)
-  write.table(exp_data_readcounts_cor, "./Results/Table/Similarity/exp_Data_readcount_cor.txt", quote = F, sep = "\t", row.names = T)
 }
 
 # DE analysis
