@@ -86,15 +86,21 @@ hisat2 -p $THREADS -x $SARS2INDEX -1 ${SAMPLE}.rRNA.dep.fastq.1.gz -2 ${SAMPLE}.
 
 #--------------------------------------------------------------------------------
 ### 3. Mapping
+#### 3.1. Mapping reads without rRNA and SARS2
 #### software: HISAT2
 #### https://daehwankimlab.github.io/hisat2/manual/
 hisat2 -p $THREADS -x $GENOMEINDEX -1 $TRIM_DIR/${SAMPLE}.rRNA.sars.dep.fastq.1.gz_val_1.fq.gz \
 	-2 $TRIM_DIR/${SAMPLE}.rRNA.sars.dep.fastq.2.gz_val_2.fq.gz \
 	--summary-file $MAPPOUTDIR/${SAMPLE}.txt -S $MAPPOUTDIR/${SAMPLE}.sam;
+
+#### 3.2. Mapping reads with SARS2
+#### software: HISAT2
+#### https://daehwankimlab.github.io/hisat2/manual/
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
 ### 4. Quantify gene expression
+#### 4.1. Quantify for 3.1 
 #### Software: Stringtie featureCounts
 #### https://ccb.jhu.edu/software/stringtie/index.shtml?t=manual
 #### https://subread.sourceforge.net/featureCounts.html
@@ -104,4 +110,9 @@ stringtie -e -B -p $THREADS -G $GTF \
 
 featureCounts -T $THREADS -a $GTF -o ${SAMPLE}.counts.txt --countReadPairs -p \ 
 	-t exon -g gene_id $MAPPOUTDIR/${SAMPLE}_Aligned.sortedByCoord.out.bam
+
+#### 4.2. Quantify for 3.2 
+#### Software: Stringtie featureCounts
+#### https://ccb.jhu.edu/software/stringtie/index.shtml?t=manual
+#### https://subread.sourceforge.net/featureCounts.html
 #--------------------------------------------------------------------------------
